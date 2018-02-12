@@ -6,7 +6,7 @@ import ABIInterfaceArray from './util/ABI.json'
 
 import './App.css';
 
-const RASPBERRY_PI_INSTANCE = '0xb3b18AfbE291E50E652ba5e3faFAbf0b566b804B'
+const SMART_CONTRACT_INSTANCE = '0xb3b18AfbE291E50E652ba5e3faFAbf0b566b804B'
 const ARTIFICIAL_DELAY_IN_MS = 3000
 
 const instancePromisifier = (instance) => promisifyAll(instance, { suffix: 'Async'})
@@ -50,7 +50,7 @@ class App extends Component {
     if(web3.isConnected()) {
       
       const abi = await web3.eth.contract(ABIInterfaceArray)
-      const instance = instancePromisifier(abi.at(RASPBERRY_PI_INSTANCE))
+      const instance = instancePromisifier(abi.at(SMART_CONTRACT_INSTANCE))
       
       console.log('Interface', ABIInterfaceArray)
       
@@ -103,7 +103,7 @@ class App extends Component {
                 </div>
             }
             <p className="App-intro">
-              Raspberry Contract Information
+              Smart Contract Information
             </p>
             <div>
               <span> Your constants are: </span>
