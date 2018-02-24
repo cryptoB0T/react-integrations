@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 
-import { GetUserDetails } from './components/GetUserDetails'
+import { UserDetails } from './components/UserDetails'
 
 class UpholdApp extends Component {
   
@@ -12,7 +12,7 @@ class UpholdApp extends Component {
         </header>
         <div className="App-wrapper">
             <p className="App-intro">
-                <GetUserDetails />
+                <UserDetails />
             </p>
         </div>
     </div>
