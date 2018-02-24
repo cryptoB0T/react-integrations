@@ -1,18 +1,9 @@
 import React, { Component } from 'react';
 
-import { upholdApi } from './apis/uphold'
+import { GetUserDetails } from './components/GetUserDetails'
 
 class UpholdApp extends Component {
   
-  constructor(props) {
-    super(props)
-    this.getUserDetails = this.getUserDetails.bind(this)
-  }
-  
-  getUserDetails() {
-    upholdApi.getUserDetails()
-  }
-
   render() {
     return (
       <div className="App">
@@ -21,7 +12,7 @@ class UpholdApp extends Component {
         </header>
         <div className="App-wrapper">
             <p className="App-intro">
-                <button onClick={this.getUserDetails}>Get User Details</button>
+                <GetUserDetails />
             </p>
         </div>
     </div>
