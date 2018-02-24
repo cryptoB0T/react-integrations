@@ -1,17 +1,30 @@
-# Web3 Reactjs Integration Example
+# Reactjs Integrations Example
 
-*Simple example showcasing performing web3 calls against a contract through React.js*
+*Simple example showcasing integrating Reactjs to multiple APIs*
 
-## Overview
+## Included APIs
 
-### Setup
+- Web3.js
+- Uphold.js
+
+## Uphold.js
+
+### Overview
+
+Uphold is a simple crypto-to-fiat third-party provider that allows 
+
+## Web3.js
+
+### Overview
+
+#### Setup
 
 Unlike normal React.js applications, Web3 powered ones need first to connect to a
 network in order to be able to communicate with any smart contract. The easiest way
 to do so through a normal browser is [MetaMask](https://metamask.io/), and then using
 their [faucet](https://faucet.metamask.io) to fill some ETH.
 
-### Connecting to Web3
+#### Connecting to Web3
 
 After setting up MetaMask, create an asynchronous Web3 wrapper in order to perform 
 basic calls against our own account. Under `util` you can see `web3.js` that exports
@@ -19,7 +32,7 @@ a Promisified Web3 function using [Bluebird](http://bluebirdjs.com/docs/getting-
 `promisifyAll`. This is called in `App.js` using `getWeb3Async` which returns a `web3`
 instance allowing you to perform actions towards a contract.
 
-### Calling a contract
+#### Calling a contract
 
 Before interacting with a contract, you need to make sure you have its Application Binary
 Interface (ABI). Then, initialize the contract address through the previously `web3` instance
@@ -41,7 +54,7 @@ In case you want to update this to fit another contract, we would need to replac
 `SMART_CONTRACT_INSTANCE` value for another contract address, and update the `ABI.json` to fit
 this new contract.
 
-### Methods available
+#### Methods available
 
 The ABI describes the methods and constants that can be used. A normal example
 would look like the following, assuming `allFunders` is a method available in our
