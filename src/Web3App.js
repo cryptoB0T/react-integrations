@@ -2,47 +2,49 @@ import React, { Component } from 'react';
 import { promisifyAll } from 'bluebird'
 
 import { getWeb3Async } from './util/web3'
-import ABIInterfaceArray from './util/ABI.json'
+import ABIInterfaceArray from './util/abis/ABI.json'
 
 import Accounts from './components/Accounts'
+import Asset from './components/Asset'
+import AssetCreation from './components/AssetCreation'
+import BugEscrow from './components/BugEscrow'
+import BugBounty from './components/BugBounty'
+import ContractManager from './components/ContractManager'
+import FundingHub from './components/FundingHub'
+import HashFunctions from './components/HashFunctions'
+import MarketPlace from './components/MarketPlace'
+import TokenBurn from './components/TokenBurn'
+import UserAccess from './components/UserAccess'
+import WithdrawalManager from './components/WithdrawalManager'
 
 import './App.css';
-
-const SMART_CONTRACT_INSTANCE = '0xb3b18AfbE291E50E652ba5e3faFAbf0b566b804B'
-
-const instancePromisifier = (instance) => promisifyAll(instance, { suffix: 'Async'})
-
-const constantsFromInterface = ABIInterfaceArray.filter( ABIinterface => ABIinterface.constant )
-const methodsFromInterface = ABIInterfaceArray.filter( ABIinterface => !ABIinterface.constant )
-
 
 class Web3App extends Component {
   constructor(props) {
     super(props);
     this.state = {
       web3: null,
-      instance: null,
       isWeb3synced: false,
     }
-    this.callInterface = this.callInterface.bind(this)
+    this.divVisibility = this.divVisibility.bind(this);
   }
-  async callInterface(interfaceName) {
-    const { instance } = this.state;
-    const response = await instance[`${interfaceName}Async`]();
-    alert(`The result from calling ${interfaceName} is ${response}`);
-  }
-  
+
   async componentDidMount() {
     const web3 = await getWeb3Async()
     if(web3.isConnected()) {
-      
-      const abi = await web3.eth.contract(ABIInterfaceArray)
-      const instance = instancePromisifier(abi.at(SMART_CONTRACT_INSTANCE))
-      
-      console.log('Interface', ABIInterfaceArray)
-      this.setState({ web3: web3, isWeb3synced: true, instance: instance })
+      this.setState({ web3: web3, isWeb3synced: true})
     }
   }
+
+  divVisibility(){
+   var x = this.refs.assetCreationDiv;
+      if (x.style.display === "none") {
+          x.style.display = "block";
+      } else {
+          x.style.display = "none";
+      }
+  }
+
   render() {
     const { web3, isWeb3synced } = this.state;
     return (
@@ -50,49 +52,50 @@ class Web3App extends Component {
         <header className="App-header">
           <h1 className="App-title">Web3.js React Integration Example</h1>
         </header>
-        { 
+        {
           isWeb3synced ?
           <div className="App-wrapper">
-            <p className="App-intro">
-              MetaMask was loaded properly.
-            </p>
-            <Accounts web3={web3} />
-            <p className="App-intro">
-              Smart Contract Information
-            </p>
-            <div>
-              <span> Your constants are: </span>
-              <br/>
-              <div style={{ textAlign: 'center' }}>
-              {
-                constantsFromInterface.map( constant => (
-                  <button 
-                    style={{ margin: 'auto', display: 'block' }}
-                    key={constant.name}
-                    onClick={() => this.callInterface(constant.name)}
-                    >
-                    {constant.name}
-                  </button>
-                ))
-              }
-              </div>
-              <br/>
-              <span> Your methods are (requires parameters): </span>
-              <pre>
-              {
-                methodsFromInterface.map( method => (
-                  <span 
-                    key={method.name} 
-                    style={{ display: 'block' }}
-                    >
-                    {method.name}
-                  </span>
-                ))
-              }
-              </pre>
-              
+            <button onClick={this.divVisibility.bind()}>AssetContract</button>
+            <br />
+            <div ref ='accountsDiv' style={{display: 'none'}}>
+              <Accounts web3={web3} />
             </div>
-          </div>
+            <div ref ='assetDiv' style={{display: 'none'}}>
+              <Asset web3={web3} />
+            </div>
+            <div ref ='assetCreationDiv' style={{display: 'none'}}>
+              <AssetCreation web3={web3} />
+            </div>
+            <div ref ='bugBountyDiv' style={{display: 'none'}}>
+              <BugBounty web3={web3} />
+            </div>
+            <div ref ='bugEscrowDiv' style={{display: 'none'}}>
+              <BugEscrow web3={web3} />
+            </div>
+            <div ref ='contractManagerDiv' style={{display: 'none'}}>
+              <ContractManager web3={web3} />
+            </div>
+            <div ref ='fundingHubDiv' style={{display: 'none'}}>
+              <FundingHub web3={web3} />
+            </div>
+            <div ref ='hashFunctionsDiv' style={{display: 'none'}}>
+              <HashFunctions web3={web3} />
+            </div>
+            <div ref ='marketPlaceDiv' style={{display: 'none'}}>
+              <MarketPlace web3={web3} />
+            </div>
+            <div ref ='tokenBurnDiv' style={{display: 'none'}}>
+              <TokenBurn web3={web3} />
+            </div>
+            <div ref ='userAccessDiv' style={{display: 'none'}}>
+              <UserAccess web3={web3} />
+            </div>
+            <div ref ='withdrawalManagerDiv' style={{display: 'none'}}>
+              <WithdrawalManager web3={web3} />
+            </div>
+
+
+        </div>
           :
           <p className="App-intro">
             To get started, connect to your MetaMask account

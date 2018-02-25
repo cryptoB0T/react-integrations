@@ -6,12 +6,13 @@
 
 - Web3.js
 - Uphold.js
+- Coinbase.js
 
 ## Uphold.js
 
 ### Overview
 
-Uphold is a simple crypto-to-fiat third-party provider that allows 
+Uphold is a simple crypto-to-fiat third-party provider that allows
 
 ## Web3.js
 
@@ -26,7 +27,7 @@ their [faucet](https://faucet.metamask.io) to fill some ETH.
 
 #### Connecting to Web3
 
-After setting up MetaMask, create an asynchronous Web3 wrapper in order to perform 
+After setting up MetaMask, create an asynchronous Web3 wrapper in order to perform
 basic calls against our own account. Under `util` you can see `web3.js` that exports
 a Promisified Web3 function using [Bluebird](http://bluebirdjs.com/docs/getting-started.html)
 `promisifyAll`. This is called in `App.js` using `getWeb3Async` which returns a `web3`
@@ -41,8 +42,8 @@ we can also perform asynchronous calls against the methods available in the cont
 
 ```
   import { promisifyAll } from 'bluebird'
-  import ABIInterfaceArray from './util/ABI.json'
-  
+  import ABIInterfaceArray from './util/abis/ABI.json'
+
   const SMART_CONTRACT_INSTANCE = '0xb3b18AfbE291E50E652ba5e3faFAbf0b566b804B'
   const instancePromisifier = (instance) => promisifyAll(instance, { suffix: 'Async'})
 
@@ -50,7 +51,7 @@ we can also perform asynchronous calls against the methods available in the cont
   const instance = instancePromisifier(abi.at(SMART_CONTRACT_INSTANCE))
 ```
 
-In case you want to update this to fit another contract, we would need to replace 
+In case you want to update this to fit another contract, we would need to replace
 `SMART_CONTRACT_INSTANCE` value for another contract address, and update the `ABI.json` to fit
 this new contract.
 
