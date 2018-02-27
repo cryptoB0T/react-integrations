@@ -2,6 +2,8 @@ import React, { Component } from 'react';
 import { promisifyAll } from 'bluebird'
 
 import { getWeb3Async } from './util/web3'
+//import { Database } from './util/Database'
+
 import ABIInterfaceArray from './util/abis/ABI.json'
 
 import Accounts from './components/Accounts'
@@ -37,7 +39,7 @@ class Web3App extends Component {
   }
 
   divVisibility(){
-   var x = this.refs.assetCreationDiv;
+   var x = this.refs.hashFunctionsDiv;
       if (x.style.display === "none") {
           x.style.display = "block";
       } else {
@@ -77,6 +79,7 @@ class Web3App extends Component {
             </div>
             <div ref ='fundingHubDiv' style={{display: 'none'}}>
               <FundingHub web3={web3} />
+              {/*database={database}*/}
             </div>
             <div ref ='hashFunctionsDiv' style={{display: 'none'}}>
               <HashFunctions web3={web3} />

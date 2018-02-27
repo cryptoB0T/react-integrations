@@ -1,4 +1,5 @@
 import React, { Component } from 'react'
+import $ from 'jquery';
 
 import { promisifyAll } from 'bluebird'
 
@@ -50,16 +51,18 @@ class Asset extends Component {
       alert(`The result from calling ${interfaceName} is ${response}`);
     }
 
+    // Used By ; USER
     async withdrawal(_assetID, _otherWithdrawal){
       const { instance, web3 } = this.state;
       const response = await instance.withdrawAsync(_assetID, _otherWithdrawal,{
-        from: web3.eth.coinbase, gas:20000});
+        from: web3.eth.coinbase, gas: 200000});
     }
 
+    // Used By ; Asset generating revenue
     async receiveIncome(_assetID, _note){
       const { instance, web3 } = this.state;
       const response = await instance.receiveIncomeAsync(_assetID, _note,{
-        from: web3.eth.coinbase, gas:20000});
+        from: web3.eth.coinbase});
       }
 
     render() {
@@ -77,17 +80,23 @@ class Asset extends Component {
               </button>
             ))}
 
-            {/* Withdrawal TODO; Grab _assetID from bigchainDB */}
+            {/*TODO; Grab _assetID from bigchainDB */ }
             <br />
             {
               <button
-              style={{ margin: 'auto', display: 'block' }}
               key={'withdrawal'}
-              onClick={() => this.withdrawal('', false)}
+              onClick={() => this.withdrawal('_assetID', $('#otherWithdrawal-select :selected').val())}
               >
-              {'Withdrawal'}
+              {'Withdrawal:'}
               </button>
           }
+          <select id='otherWithdrawal-select'>
+            <option value="true">MetaMask</option>
+            <option value="false">Uphold</option>
+          </select>
+          <br />
+
+
 
           {/* Receieve Income TODO; Grab _assetID from bigchainDB */}
           <br />

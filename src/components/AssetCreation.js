@@ -1,4 +1,6 @@
 import React, { Component } from 'react'
+import $ from 'jquery';
+
 import { promisifyAll } from 'bluebird'
 import ABIInterfaceArray from '../util/abis/AssetCreation.json'
 
@@ -93,59 +95,92 @@ class Asset extends Component {
                 </button>
               ))}
 
-              {/* New Asset TODO; Grab data from BigchainDB */}
+            {/* TODO;
+                       Grab _storageHash from bigchainDB
+                       Grab _installerID from bigchainDB
+                       Grab _amountToBeRaised from bigchainDB
+                       Grab _assetType from bigchainDB
+                For example text boxes have been created
+              */}
               <br />
               {
                 <button
-                style={{ margin: 'auto', display: 'block' }}
                 key={'newAsset'}
                 onClick={() => this.newAsset(
-                  '_storageHash', '_amountToBeRaised',
-                  '_installerID', '_assetType')}
+                  $('#newAsset-_storageHash').val(),
+                  $('#newAsset-_amountToBeRaised').val(),
+                  $('#newAsset-_installerID').val(),
+                  $('#newAsset-_assetType').val()
+                )}
                 >
                 {'New Asset'}
                 </button>
               }
+              <br />
+            _storageHash:<input type="text" id="newAsset-_storageHash"></input>
+            _amountToBeRaised:<input type="text" id="newAsset-_amountToBeRaised"></input>
+            _installerID:<input type="text" id="newAsset-_installerID"></input>
+            _assetType:<input type="text" id="newAsset-_assetType"></input>
 
-              {/* Remove Asset TODO; Grab _assetID from bigchainDB */}
+          <br />
+
+            {/* TODO;
+                       Grab _assetID from bigchainDB
+                For example text boxes have been created
+              */}
               <br />
               {
                 <button
                 style={{ margin: 'auto', display: 'block' }}
                 key={'removeAsset'}
                 onClick={() => this.removeAsset(
-                  '_assetID', '0x0')}
+                  $('#removeAsset-_assetID').val(),
+                  $('#removeAsset-_functionSigner').val(),
+                )}
                 >
                 {'Remove Asset'}
                 </button>
               }
+              _assetID:<input type="text" id="removeAsset-_assetID"></input>
+              _functionSigner:<input type="text" id="removeAsset-_functionSigner"></input>
+              <br />
 
-              {/* Change Funding Time TODO; Grab funding time from text field */}
+
               <br />
               {
                 <button
                 style={{ margin: 'auto', display: 'block' }}
                 key={'changeFundingTime'}
                 onClick={() => this.changeFundingTime(
-                  '_newTimeGivenForFunding')}
+                    $('#changeFundingTime-_newTimeGivenForFunding').val())}
                 >
                 {'Change Funding Time'}
                 </button>
             }
+            _newTimeGivenForFunding:<input type="text" id="changeFundingTime-_newTimeGivenForFunding"></input>
 
-            {/* Change Funding Percentage TODO; Grab % from fields */}
+
+              <br />
               <br />
              {
               <button
               style={{ margin: 'auto', display: 'block' }}
               key={'changeFundingPercentages'}
               onClick={() => this.changeFundingPercentages(
-                '_myBitFoundationPercentage', '_stakedTokenPercentage',
-                '_installerPercentage', '_functionSigner')}
+                  $('#changeFundingPercentages-_myBitFoundationPercentage').val(),
+                  $('#changeFundingPercentages-_stakedTokenPercentage').val(),
+                  $('#changeFundingPercentages-_installerPercentage').val(),
+                  $('#changeFundingPercentages-_functionSigner').val()
+                )}
               >
               {'Change Funding Percentages'}
               </button>
           }
+          _myBitFoundationPercentage:<input type="text" id="changeFundingPercentages-_myBitFoundationPercentage"></input>
+          _stakedTokenPercentage:<input type="text" id="changeFundingPercentages-_stakedTokenPercentage"></input>
+          _installerPercentage:<input type="text" id="changeFundingPercentages-_installerPercentage"></input>
+          _functionSigner:<input type="text" id="changeFundingPercentages-_functionSigner"></input>
+
 
             </div>
           );

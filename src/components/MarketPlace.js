@@ -1,8 +1,11 @@
 import React, { Component } from 'react'
+import $ from 'jquery';
+import { keccak256 } from 'js-sha3';
 
 import { promisifyAll } from 'bluebird'
 
 import ABIInterfaceArray from '../util/abis/MarketPlace.json'
+//import {Database} from './Database.js'
 
 import '../App.css';
 
@@ -22,6 +25,7 @@ class MarketPlace extends Component {
         LogBuyOrderCompleted:null,
         LogSellOrderCompleted:null,
         }
+      // database:null
       this.callInterface = this.callInterface.bind(this);
       this.buyAsset = this.buyAsset.bind(this);
       this.sellAsset = this.sellAsset.bind(this);
@@ -33,6 +37,7 @@ class MarketPlace extends Component {
 
     async componentDidMount() {
       const { web3 } = this.props;
+      // const { database } = this.props;
       const abi = await web3.eth.contract(ABIInterfaceArray)
       const instance = instancePromisifier(abi.at(SMART_CONTRACT_ADDRESS))
       const LogDestruction = instance.LogDestruction({},{fromBlock: 0, toBlock: 'latest'});
@@ -51,28 +56,58 @@ class MarketPlace extends Component {
       alert(`The result from calling ${interfaceName} is ${response}`);
     }
 
+    // TODO; grab assetID
     async buyAsset(_sellOrderID){
       const { instance, web3 } = this.state;
-      const response = await instance.buyAsset(_sellOrderID,{
-        from: web3.eth.coinbase, gas:20000, value :'GRABVALUE'});
+      const sellOrder = await instance.sellOrdersAsync(_sellOrderID);
+      if(sellOrder.amount !== 0 ){
+        var valueCost = sellOrder.amount * sellOrder.price;
+        const response = await instance.buyAsset(_sellOrderID,{
+          from: web3.eth.coinbase, gas:20000, value :web3.fromWei(valueCost)});
+      }
     }
 
+    // TODO; grab assetID
     async sellAsset(_buyOrderID){
       const { instance, web3 } = this.state;
-      const response = await instance.sellAsset(_buyOrderID,{
-        from: web3.eth.coinbase, gas:20000, value :'GRABVALUE'});
+      const buyOrder = await instance.buyOrdersAsync(_buyOrderID);
+      if(buyOrder.amount !== 0){
+        var valueCost = buyOrder.amount * buyOrder.price;
+        const response = await instance.sellAsset(_buyOrderID,{
+          from: web3.eth.coinbase, gas:20000, value :web3.fromWei(valueCost)
+        });
       }
-
+    }
+    // TODO; grab assetID
     async createBuyOrder(_amount, _price, _assetID){
-      const { instance, web3 } = this.state;
-      const response = await instance.createBuyOrder(_amount, _price, _assetID,{
-        from: web3.eth.coinbase, gas:20000, value :'GRABVALUE'});
+      /*const { instance, web3, database } = this.state;
+      if(_amount > 0 && _price > 0){
+
+        const assetExists = await database.uintStorageAsync(keccak256('fundingStage', _assetID));
+        if(assetExists == 4){
+          var valueDeposit = _amount * _price;
+          const response = await instance.createBuyOrder(_amount, _price, _assetID,{
+            from: web3.eth.coinbase, gas:20000, value : web3.fromWei(valueDeposit)});
+            }
+        }
+      */
       }
 
     async createSellOrder(_amount, _price, _assetID){
-      const { instance, web3 } = this.state;
-      const response = await instance.createSellOrder(_amount, _price, _assetID,{
-        from: web3.eth.coinbase, gas:20000, value :'GRABVALUE'});
+      /*const { instance, web3, database } = this.state;
+      if(_amount > 0 && _price > 0){
+
+        const assetExists = await database.uintStorageAsync(keccak256('fundingStage', _assetID));
+        if(assetExists == 4){
+          var valueDeposit = _amount * _price;
+          const response = await instance.createSellOrder(_amount, _price, _assetID,{
+            from: web3.eth.coinbase, gas:20000, value : web3.fromWei(valueDeposit)});
+            }
+        }
+        const response = await instance.createSellOrder(_amount, _price, _assetID,{
+          from: web3.eth.coinbase, gas:20000, value :'GRABVALUE'});
+      */
+
       }
 
     async deleteBuyOrder(_orderID){
@@ -109,19 +144,22 @@ class MarketPlace extends Component {
               </button>
             ))}
 
-            {/*  TODO; */}
             <br />
             {
               <button
               style={{ margin: 'auto', display: 'block' }}
               key={'buyAsset'}
-              onClick={() => this.buyAsset('_sellOrderID')}
+              onClick={() => this.buyAsset(
+                $('#buyAsset-_sellOrderID').val()
+              )}
               >
               {'Buy Asset'}
               </button>
           }
+          _sellOrderID:<input type="text" id="buyAsset-_sellOrderID"></input>
 
-          {/*  TODO; */}
+
+          <br />
           <br />
           {
             <button

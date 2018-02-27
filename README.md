@@ -6,7 +6,6 @@
 
 - Web3.js
 - Uphold.js
-- Coinbase.js
 
 ## Uphold.js
 

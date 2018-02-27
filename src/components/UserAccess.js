@@ -44,9 +44,15 @@ class UserAccess extends Component {
       alert(`The result from calling ${interfaceName} is ${response}`);
     }
 
-    async setBackupAddress(_oldAddress, _newBackup){
+    async setBackupAddress(_backupAddress){
       const { instance, web3 } = this.state;
-      const response = await instance.setBackupAddress(_oldAddress, _newBackup,{
+      const response = await instance.setBackupAddress(_backupAddress,{
+        from: web3.eth.coinbase, gas:20000});
+    }
+
+    async switchToBackup(_oldAddress, _newBackup){
+      const { instance, web3 } = this.state;
+      const response = await instance.switchToBackup(_oldAddress, _newBackup,{
         from: web3.eth.coinbase, gas:20000});
     }
 

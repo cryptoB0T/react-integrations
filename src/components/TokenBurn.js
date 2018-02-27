@@ -19,13 +19,10 @@ class TokenBurn extends Component {
         LogMyBitBurnt:null,
         LogCallBackRecieved:null,
       }
-      this.callInterface = this.buyOrders.bind(this);
-      this.burnQuery = this.buyAsset.bind(this);
-      this.burnTokens = this.sellAsset.bind(this);
-      this.createBuyOrder = this.createBuyOrder.bind(this);
-      this.createSellOrder = this.createSellOrder.bind(this);
-      this.deleteBuyOrder = this.deleteBuyOrder.bind(this);
-      this.deleteSellOrder = this.deleteSellOrder.bind(this);
+      this.callInterface = this.callInterface.bind(this);
+      this.burnQuery = this.burnQuery.bind(this);
+      this.burnTokens = this.burnTokens.bind(this);
+
     }
 
     async componentDidMount() {

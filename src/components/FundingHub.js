@@ -1,4 +1,5 @@
 import React, { Component } from 'react'
+import $ from 'jquery';
 
 import { promisifyAll } from 'bluebird'
 
@@ -103,53 +104,81 @@ class FundingHub extends Component {
               </button>
             ))}
 
-            {/*  TODO; */}
+            {/*  TODO;
+                    Grab _assetID from bigchainDB
+            */}
             <br />
             {
               <button
               style={{ margin: 'auto', display: 'block' }}
               key={'fund'}
-              onClick={() => this.fund('_assetID')}
+              onClick={() => this.fund(
+                $('#fund-_assetID').val()
+              )}
               >
               {'Fund'}
               </button>
           }
+          _assetID:<input type="text" id="fund-_assetID"></input>
 
-          {/*  TODO; */}
+
+          {/*  TODO;
+                  Grab _assetID from bigchainDB
+          */}
+          <br />
           <br />
           {
             <button
             style={{ margin: 'auto', display: 'block' }}
             key={'payout'}
-            onClick={() => this.payout('_assetID')}
+            onClick={() => this.payout(
+              $('#payout-_assetID').val()
+            )}
             >
             {'Payout'}
             </button>
           }
+          _assetID:<input type="text" id="payout-_assetID"></input>
 
-          {/*  TODO;  */}
+
+          {/*  TODO;
+                  Grab _assetID from bigchainDB
+          */}
+          <br />
           <br />
           {
             <button
             style={{ margin: 'auto', display: 'block' }}
             key={'initiateRefund'}
-            onClick={() => this.initiateRefund('_assetID')}
+            onClick={() => this.initiateRefund(
+              $('#initiateRefund-_assetID').val()
+            )}
             >
             {'Initiate Refund'}
             </button>
           }
+          _assetID:<input type="text" id="initiateRefund-_assetID"></input>
 
-          {/*  TODO;  */}
+
+
+          {/*  TODO;
+                  Grab _assetID from bigchainDB
+          */}
+          <br />
           <br />
           {
             <button
             style={{ margin: 'auto', display: 'block' }}
             key={'refund'}
-            onClick={() => this.refund('_name', '_contractAddress', '_functionSigner')}
+            onClick={() => this.refund(
+              $('#refund-_assetID').val()
+            )}
             >
             {'Refund'}
             </button>
           }
+          _assetID:<input type="text" id="refund-_assetID"></input>
+
 
           </div>
         );
