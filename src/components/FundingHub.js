@@ -126,7 +126,6 @@ class FundingHub extends Component {
             <br />
             {
               <button
-              style={{ margin: 'auto', display: 'block' }}
               key={'fund'}
               onClick={() => this.fund(
                 $('#fund-_assetID').val(),
@@ -148,7 +147,6 @@ class FundingHub extends Component {
           <br />
           {
             <button
-            style={{ margin: 'auto', display: 'block' }}
             key={'payout'}
             onClick={() => this.payout(
               $('#payout-_assetID').val()
@@ -167,7 +165,6 @@ class FundingHub extends Component {
           <br />
           {
             <button
-            style={{ margin: 'auto', display: 'block' }}
             key={'initiateRefund'}
             onClick={() => this.initiateRefund(
               $('#initiateRefund-_assetID').val()
@@ -187,7 +184,6 @@ class FundingHub extends Component {
           <br />
           {
             <button
-            style={{ margin: 'auto', display: 'block' }}
             key={'refund'}
             onClick={() => this.refund(
               $('#refund-_assetID').val()

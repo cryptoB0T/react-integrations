@@ -1,31 +1,29 @@
 import React, { Component } from 'react'
 import { promisifyAll } from 'bluebird'
 import ABIInterfaceArray from '../util/abis/BugEscrow.json'
-
-import '../App.css';
+// TODO; update .json
 
 const SMART_CONTRACT_ADDRESS = '0x0'
 const instancePromisifier = (instance) => promisifyAll(instance, { suffix: 'Async'})
-const constantsFromInterface = ABIInterfaceArray.filter( ABIinterface => ABIinterface.constant )
 
 
-class BugEscrow extends Component {
+class BugBank extends Component {
     constructor(props) {
       super(props)
       this.state = {
+        web3:null,
         instance:null,
-        LogFeeReceived:null,
       }
       this.callConstant = this.callInterface.bind(this);
-      this.receiveTransactionFee = this.receiveTransactionFee.bind(this);
+      this.withdraw = this.withdraw.bind(this);
+      this.calculateOwed = this.calculateOwed.bind(this);
     }
 
     async componentDidMount() {
       const { web3 } = this.props;
       const abi = await web3.eth.contract(ABIInterfaceArray)
       const instance = instancePromisifier(abi.at(SMART_CONTRACT_ADDRESS))
-      const LogFeeReceived = instance.LogFeeReceived({},{fromBlock: 0, toBlock: 'latest'});
-      this.setState({ web3: web3, instance: instance, LogFeeReceived: LogFeeReceived })
+      this.setState({ web3: web3, instance: instance })
     }
 
     async callInterface(interfaceName) {
@@ -34,43 +32,53 @@ class BugEscrow extends Component {
       alert(`The result from calling ${interfaceName} is ${response}`);
     }
 
-    async receiveTransactionFee(){
+    async withdraw(){
       const { instance, web3 } = this.state;
-      const response = await instance.receiveTransactionFeeAsync(
-        {from: web3.eth.coinbase, gas:20000, value:'addVALUE'}
+      const response = await instance.withdrawAsync(
+        {from: web3.eth.coinbase, gas:20000}
+      );
+    }
+
+    async calculateOwed(){
+      const { instance, web3 } = this.state;
+      const response = await instance.calculateOwedAsync(
+        web3.eth.coinbase,
+        {from: web3.eth.coinbase, gas:20000}
       );
     }
 
     render() {
         return (
           <div>
-            <br /><br />
-            {
-              constantsFromInterface.map( constant => (
-              <button
-                style={{ margin: 'auto', display: 'block' }}
-                key={constant.name}
-                onClick={() => this.callInterface(constant.name)}
-                >
-                {'Constant : ' + constant.name}
-              </button>
-            ))}
-
             {/*  TODO;  */}
+
             <br />
             {
               <button
               style={{ margin: 'auto', display: 'block' }}
-              key={'receiveTransactionFee'}
-              onClick={() => this.receiveTransactionFee()}
+              key={'withdraw'}
+              onClick={() => this.withdraw()}
               >
-              {'Receieve Transaction Fee'}
+              {'withdraw'}
               </button>
             }
+
+            <br />
+            <br />
+            {
+              <button
+              style={{ margin: 'auto', display: 'block' }}
+              key={'calculateOwed'}
+              onClick={() => this.calculateOwed()}
+              >
+              {'Calculate Owed'}
+              </button>
+            }
+
           </div>
         );
       }
     }
 
 
-export default BugEscrow;
+export default BugBank;

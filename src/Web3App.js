@@ -10,12 +10,13 @@ import ABIInterfaceArray from './util/abis/ABI.json'
 import Accounts from './components/Accounts'
 import Asset from './components/Asset'
 import AssetCreation from './components/AssetCreation'
-import BugEscrow from './components/BugEscrow'
+import BugBank from './components/BugBank'
 import BugBounty from './components/BugBounty'
 import ContractManager from './components/ContractManager'
 import FundingHub from './components/FundingHub'
 import HashFunctions from './components/HashFunctions'
 import MarketPlace from './components/MarketPlace'
+import StakingBank from './components/StakingBank'
 import TokenBurn from './components/TokenBurn'
 import UserAccess from './components/UserAccess'
 import WithdrawalManager from './components/WithdrawalManager'
@@ -82,13 +83,17 @@ class Web3App extends Component {
                 web3={web3}
                 Database ={databaseInstance}
                  />
+            </div>BugBank
+            <div ref ='bugBankDiv' style={{display: 'none'}}>
+              <AssetCreation
+                web3={web3}
+                Database ={databaseInstance}
+                 />
             </div>
             <div ref ='bugBountyDiv' style={{display: 'none'}}>
               <BugBounty web3={web3} />
             </div>
-            <div ref ='bugEscrowDiv' style={{display: 'none'}}>
-              <BugEscrow web3={web3} />
-            </div>
+
             <div ref ='contractManagerDiv' style={{display: 'none'}}>
               <ContractManager web3={web3} />
             </div>
@@ -108,7 +113,17 @@ class Web3App extends Component {
                 database={databaseInstance}
                 modifier={modifierInstance}
                 />
+            </div>StakingBank
+            <div ref ='stakingBankDiv' style={{display: 'none'}}>
+              <MarketPlace
+                web3={web3}
+                database={databaseInstance}
+                modifier={modifierInstance}
+                />
             </div>
+
+
+
             <div ref ='tokenBurnDiv' style={{display: 'none'}}>
               <TokenBurn
                  web3={web3}

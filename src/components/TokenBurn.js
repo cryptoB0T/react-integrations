@@ -1,5 +1,7 @@
 import React, { Component } from 'react'
 import { keccak256 } from 'js-sha3';
+import $ from 'jquery'
+
 
 import { promisifyAll } from 'bluebird'
 
@@ -73,13 +75,19 @@ class TokenBurn extends Component {
           <br />
           {
             <button
-            style={{ margin: 'auto', display: 'block' }}
             key={'burnTokens'}
-            onClick={() => this.burnTokens('_accessLevelDesired')}
+            onClick={() => this.burnTokens($('#tokenburn-_accessLevelDesired').val())}
             >
             {'Burn Tokens'}
             </button>
           }
+          <select id='tokenburn-_accessLevelDesired'>
+            <option value="1">1</option>
+            <option value="2">2</option>
+            <option value="3">3</option>
+            <option value="4">4</option>
+          </select>
+
 
           </div>
         );

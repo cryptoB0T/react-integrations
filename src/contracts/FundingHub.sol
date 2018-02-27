@@ -1,11 +1,11 @@
 pragma solidity ^0.4.18;
 import './SafeMath.sol';
 import './Database.sol';
-import './BugEscrow.sol';
-
+import './StakingBank.sol';
 
 // This contract is in charge of creating individual asset contracts. It acts as a reference for locations of Assets and other funding parameters
 // Funding stages: { 0: funding hasn't started, 1: currently being funded, 2: funding failed,  3: funding success, 4: asset is live
+// TODO: make funding measured in blocks...not timestamp
 contract FundingHub {
   using SafeMath for *;
 
@@ -13,7 +13,6 @@ contract FundingHub {
   Database public database;
 
   bool private rentrancy_lock;    // Prevents re-entrancy attack
-
 
   function FundingHub(address _database)
   public {
@@ -37,10 +36,8 @@ contract FundingHub {
       LogNewFunder(msg.sender, block.timestamp);    // Create event to reference list of funders
     }
     uint256 amountRaised = database.uintStorage(keccak256("amountRaised", _assetID));
-    uint256 totalFunders = database.uintStorage(keccak256("totalFunders", _assetID));
     database.setUint(keccak256("amountRaised", _assetID), amountRaised.add(msg.value));
     database.setUint(keccak256("shares", _assetID, msg.sender), shares.add(msg.value));
-    database.setUint(keccak256("totalFunders", _assetID), totalFunders.add(1));
     LogAssetFunded(msg.sender, msg.value, block.timestamp);
     return true;
   }
@@ -48,6 +45,7 @@ contract FundingHub {
   // This is called once funding has succeeded. Sends Ether to installer, foundation and Token Holders
   // Invariants: Must be in stage FundingSuccess | MyBitFoundation + AssetEscrow  + BugEscrow addresses are set | Contract is not paused
   // Note: MyBitFoundation + AssetEscrow cannot be contracts.
+  // TODO: test gas on this
   function payout(bytes32 _assetID)
   external
   nonReentrant
@@ -63,11 +61,13 @@ contract FundingHub {
     assert (myBitAmount.add(stakedTokenAmount).add(installerAmount) == amountRaised);       // TODO: for testing
     assert (myBitAmount != 0);        // TODO: testing
     assert (stakedTokenAmount != 0);      // TODO: testing
-    BugEscrow bugEscrow = BugEscrow(database.addressStorage(keccak256("contract", "BugEscrow")));
-    uint currentBalance = this.balance;      // TODO: testing
-    bugEscrow.receiveTransactionFee.value(stakedTokenAmount)();
+    StakingBank stakingBank = StakingBank(database.addressStorage(keccak256("contract", "StakingBank")));
+    stakingBank.receiveTransactionFee.value(stakedTokenAmount)();
     myBitFoundation.transfer(myBitAmount);             // Must be normal account
     assetEscrow.transfer(installerAmount);             // Must be normal account
+    address manager = database.addressStorage(keccak256("assetManager", _assetID));
+    uint managerPercentage = database.uintStorage(keccak256("managerPercentage", _assetID));
+    database.setUint(keccak256("shares", _assetID, manager), amountRaised.mul(managerPercentage));   // Give manager his percentage of shares
     transitionToStage(_assetID, 4);
     LogAssetPayoutMyBitFoundation(myBitFoundation, myBitAmount, block.timestamp);
     LogAssetPayoutLockedTokenHolders(address(bugEscrow), stakedTokenAmount, block.timestamp);
@@ -185,7 +185,6 @@ contract FundingHub {
   event LogAssetFundingFailed(bytes32 indexed _assetID, uint256 indexed _amountRaised, uint256 indexed _timestamp);
   event LogAssetPayoutInstaller(address indexed _assetInstaller, uint256 indexed installerAmount, uint256 indexed _timestamp);
   event LogRefund(address indexed _funder, uint256 indexed _amount, uint256 indexed _timestamp);
-  event LogFundingTimeChanged(uint256 _newFundingTime, uint256 _timestamp);
   event LogAssetEscrowChanged(address _newEscrowLocation, uint256 _timestamp);
   event LogAssetPayoutMyBitFoundation(address indexed _myBitFoundation, uint256 indexed _myBitAmount, uint256 indexed _timestamp);
   event LogAssetPayoutLockedTokenHolders(address indexed _lockedTokenContract, uint256 indexed _lockedTokenAmount, uint256 indexed _timestamp);

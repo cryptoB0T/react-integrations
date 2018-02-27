@@ -1,4 +1,6 @@
 import React, { Component } from 'react'
+import $ from 'jquery'
+
 import { promisifyAll } from 'bluebird'
 import ABIInterfaceArray from '../util/abis/BugBounty.json'
 
@@ -17,6 +19,7 @@ class BugBounty extends Component {
       }
       this.callConstant = this.callInterface.bind(this);
       this.submitBug = this.submitBug.bind(this);
+      this.voteForBug = this.voteForBug.bind(this);
     }
 
     async componentDidMount() {
@@ -32,12 +35,27 @@ class BugBounty extends Component {
       alert(`The result from calling ${interfaceName} is ${response}`);
     }
 
-    async submitBug(){
+    async submitBug(_severity){
       const { instance, web3 } = this.state;
-      const response = await instance.submitBugAsync(
+      if(_severity > 0 && _severity < 4){
+        const response = await instance.submitBugAsync(
+          _severity,
+          {from: web3.eth.coinbase, gas:20000}
+        );
+      }
+    }
+
+    /* TODO; grab bug ID*/
+    async voteForBug(_bugID, _upvote){
+      const { instance, web3 } = this.state;
+
+      const response = await instance.voteForBug(
+        _bugID, _upvote,
         {from: web3.eth.coinbase, gas:20000}
       );
     }
+
+
 
     render() {
         return (
@@ -58,13 +76,38 @@ class BugBounty extends Component {
             <br />
             {
               <button
-              style={{ margin: 'auto', display: 'block' }}
               key={'submitBug'}
-              onClick={() => this.submitBug()}
+              onClick={() => this.submitBug($('#bugseverity-select :selected').val())}
               >
               {'Submit Bug'}
               </button>
             }
+            <select id='bugseverity-select'>
+              <option value="1">1</option>
+              <option value="2">2</option>
+              <option value="3">3</option>
+              <option value="4">4</option>
+            </select>
+
+            <br />
+            <br />
+              {
+                <button
+                key={'submitBug'}
+                onClick={() => this.voteForBug(
+                  $('#voteForBug-_bugID').val(),
+                  $('#voteForBug-select :selected').val()
+                )}
+                >
+                {'Vote Bug'}
+                </button>
+              }
+              _bugID:<input type="text" id="voteForBug-_bugID"></input>
+              <select id='voteForBug-select'>
+                <option value="true">true</option>
+                <option value="false">false</option>
+              </select>
+
           </div>
         );
       }
