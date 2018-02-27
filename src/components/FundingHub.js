@@ -1,5 +1,6 @@
 import React, { Component } from 'react'
 import $ from 'jquery';
+import { keccak256 } from 'js-sha3';
 
 import { promisifyAll } from 'bluebird'
 
@@ -10,14 +11,15 @@ import '../App.css';
 const SMART_CONTRACT_ADDRESS = '0x0'
 const instancePromisifier = (instance) => promisifyAll(instance, { suffix: 'Async'})
 const constantsFromInterface = ABIInterfaceArray.filter( ABIinterface => ABIinterface.constant )
-const methodsFromInterface = ABIInterfaceArray.filter( ABIinterface => !ABIinterface.constant )
-
 
 class FundingHub extends Component {
     constructor(props) {
       super(props)
       this.state = {
         instance:null,
+        web3:null,
+        database:null,
+        modifier:null,
         LogNewFunder:null,
         LogAssetFunded:null,
         LogAssetFundingFailed:null,
@@ -37,7 +39,7 @@ class FundingHub extends Component {
     }
 
     async componentDidMount() {
-      const { web3, database } = this.props;
+      const { web3, database, modifier } = this.props;
       const abi = await web3.eth.contract(ABIInterfaceArray)
       const instance = instancePromisifier(abi.at(SMART_CONTRACT_ADDRESS))
       const LogNewFunder = instance.LogNewFunder({},{fromBlock: 0, toBlock: 'latest'});
@@ -50,10 +52,10 @@ class FundingHub extends Component {
       const LogAssetPayoutMyBitFoundation = instance.LogAssetPayoutMyBitFoundation({}, {fromBlock: 0, toBlock: 'latest'});
       const LogAssetPayoutLockedTokenHolders = instance.LogAssetPayoutLockedTokenHolders({}, {fromBlock: 0, toBlock: 'latest'});
       const LogDestruction = instance.LogDestruction({}, {fromBlock: 0, toBlock: 'latest'});
-      this.setState({ web3: web3, instance: instance, LogNewFunder: LogNewFunder,
+      this.setState({ web3: web3, database: database, modifier: modifier, instance: instance, LogNewFunder: LogNewFunder,
       LogAssetFunded: LogAssetFunded, LogAssetFundingFailed: LogAssetFundingFailed,
       LogAssetPayoutInstaller: LogAssetPayoutInstaller, LogRefund: LogRefund,
-      LogFundingTimeChanged: LogFundingTimeChanged, LogAssetEscrowChanged,LogAssetEscrowChanged,
+      LogFundingTimeChanged: LogFundingTimeChanged, LogAssetEscrowChanged: LogAssetEscrowChanged,
       LogAssetPayoutMyBitFoundation: LogAssetPayoutMyBitFoundation, LogAssetPayoutLockedTokenHolders:
       LogAssetPayoutLockedTokenHolders, LogDestruction:LogDestruction })
     }
@@ -64,28 +66,42 @@ class FundingHub extends Component {
       alert(`The result from calling ${interfaceName} is ${response}`);
     }
 
-    async fund(_assetID){
-      const { instance, web3 } = this.state;
-      const response = await instance.fund(_assetID,{
-        from: web3.eth.coinbase, gas:20000, value: 'GRABVALUE'});
-    }
+    async fund(_assetID, _value){
+      const { instance, web3, modifier } = this.state;
+      if(modifier.fundingLimitValue(_assetID) &&
+         modifier.fundingLimitTime(_assetID) &&
+         modifier.onlyApproved(2) &&
+         modifier.atStage(_assetID, 1) &&
+         modifier.notZero(_value)
+      ){
+        const response = await instance.fundAsync(_assetID,{
+            from: web3.eth.coinbase, gas:20000, value: _value});}
+        }
 
     async payout(_assetID){
-      const { instance, web3 } = this.state;
-      const response = await instance.payout(_assetID,{
-        from: web3.eth.coinbase, gas:20000});
-      }
+      const { instance, web3, modifier } = this.state;
+      if(modifier.atStage(_assetID, 3) &&
+         modifier.fundingPeriodOver(_assetID)
+      ){
+        const response = await instance.payoutAsync(_assetID,{
+          from: web3.eth.coinbase, gas:20000});}
+    }
 
     async initiateRefund(_assetID){
-      const { instance, web3 } = this.state;
-      const response = await instance.initiateRefund(_assetID,{
-        from: web3.eth.coinbase, gas:20000});
-      }
+      const { instance, web3, modifier} = this.state;
+      if(modifier.fundingPeriodOver(_assetID) &&
+         modifier.atStage(_assetID, 1)
+      ){
+        const response = await instance.initiateRefundAsync(_assetID,{
+          from: web3.eth.coinbase, gas:20000});}
+    }
 
     async refund(_assetID){
-      const { instance, web3 } = this.state;
-      const response = await instance.refund(_assetID,{
-        from: web3.eth.coinbase, gas:20000});
+      const { instance, web3, modifier } = this.state;
+      if(modifier.atStage(_assetID, 1))
+        {
+        const response = await instance.refundAsync(_assetID,{
+          from: web3.eth.coinbase, gas:20000});}
       }
 
 
@@ -113,13 +129,16 @@ class FundingHub extends Component {
               style={{ margin: 'auto', display: 'block' }}
               key={'fund'}
               onClick={() => this.fund(
-                $('#fund-_assetID').val()
+                $('#fund-_assetID').val(),
+                $('#fund-_value').val()
               )}
               >
               {'Fund'}
               </button>
-          }
+          }_value
           _assetID:<input type="text" id="fund-_assetID"></input>
+          _value:<input type="text" id="fund-_value"></input>
+
 
 
           {/*  TODO;

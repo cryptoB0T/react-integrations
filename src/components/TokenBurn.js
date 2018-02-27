@@ -1,4 +1,5 @@
 import React, { Component } from 'react'
+import { keccak256 } from 'js-sha3';
 
 import { promisifyAll } from 'bluebird'
 
@@ -15,23 +16,24 @@ class TokenBurn extends Component {
     constructor(props) {
       super(props)
       this.state = {
+        web3:null,
         instance:null,
+        modifier:null,
         LogMyBitBurnt:null,
         LogCallBackRecieved:null,
       }
       this.callInterface = this.callInterface.bind(this);
-      this.burnQuery = this.burnQuery.bind(this);
       this.burnTokens = this.burnTokens.bind(this);
-
+      this.basicVerification = this.basicVerification.bind(this);
     }
 
     async componentDidMount() {
-      const { web3 } = this.props;
+      const { web3, modifier } = this.props;
       const abi = await web3.eth.contract(ABIInterfaceArray)
       const instance = instancePromisifier(abi.at(SMART_CONTRACT_ADDRESS))
       const LogMyBitBurnt = instance.LogMyBitBurnt({},{fromBlock: 0, toBlock: 'latest'});
       const LogCallBackRecieved = instance.LogCallBackRecieved({},{fromBlock: 0, toBlock: 'latest'});
-      this.setState({ web3: web3, instance: instance, LogMyBitBurnt: LogMyBitBurnt,
+      this.setState({ web3: web3, instance: instance, modifier: modifier, LogMyBitBurnt: LogMyBitBurnt,
        LogCallBackRecieved: LogCallBackRecieved})
     }
 
@@ -41,16 +43,14 @@ class TokenBurn extends Component {
       alert(`The result from calling ${interfaceName} is ${response}`);
     }
 
-    async burnQuery(_accessLevelDesired){
-      const { instance, web3 } = this.state;
-      const response = await instance.burnQuery(_accessLevelDesired,{
-        from: web3.eth.coinbase, gas:20000});
-    }
-
     async burnTokens(_accessLevelDesired){
-      const { instance, web3 } = this.state;
-      const response = await instance.burnTokens(_accessLevelDesired,{
-        from: web3.eth.coinbase, gas:20000});
+      const { instance, web3, modifier } = this.state;
+      if(modifier.accessLevel() >=1 &&
+         modifier.accessLevel() < _accessLevelDesired &&
+         _accessLevelDesired < 5){
+           const response = await instance.burnTokens(_accessLevelDesired,{
+             from: web3.eth.coinbase, gas:20000});
+         }
       }
 
     render() {
@@ -68,17 +68,6 @@ class TokenBurn extends Component {
               </button>
             ))}
 
-            {/*  TODO; */}
-            <br />
-            {
-              <button
-              style={{ margin: 'auto', display: 'block' }}
-              key={'burnQuery'}
-              onClick={() => this.burnQuery('_accessLevelDesired')}
-              >
-              {'Burn Query'}
-              </button>
-          }
 
           {/*  TODO; */}
           <br />

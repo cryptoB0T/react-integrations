@@ -1,5 +1,6 @@
 import React, { Component } from 'react'
 import $ from 'jquery';
+import { keccak256 } from 'js-sha3';
 
 import { promisifyAll } from 'bluebird'
 
@@ -17,6 +18,8 @@ class Asset extends Component {
     constructor(props) {
       super(props)
       this.state = {
+        web3:null,
+        database:null,
         instance:null,
         LogSharesTraded:null,
         LogDestruction:null,
@@ -30,7 +33,7 @@ class Asset extends Component {
     }
 
     async componentDidMount() {
-      const { web3 } = this.props;
+      const { web3, database } = this.props;
       const abi = await web3.eth.contract(ABIInterfaceArray)
       const instance = instancePromisifier(abi.at(SMART_CONTRACT_ADDRESS))
       const LogSharesTraded = instance.LogSharesTraded({},{fromBlock: 0, toBlock: 'latest'});
@@ -39,10 +42,10 @@ class Asset extends Component {
       const LogInvestmentPaid = instance.LogInvestmentPaid({},{fromBlock: 0, toBlock: 'latest'});
       const LogInvestmentPaidToWithdrawalAddress = instance.LogInvestmentPaidToWithdrawalAddress({},{fromBlock: 0, toBlock: 'latest'});
       const LogAssetNote = instance.LogAssetNote({},{fromBlock: 0, toBlock: 'latest'});
-      this.setState({ web3: web3, instance: instance, LogSharesTraded : LogSharesTraded,
+      this.setState({ web3: web3, database: database, instance: instance, LogSharesTraded : LogSharesTraded,
       LogDestruction : LogDestruction, LogIncomeReceived : LogIncomeReceived,
       LogInvestmentPaid : LogInvestmentPaid, LogInvestmentPaidToWithdrawalAddress:
-      LogInvestmentPaidToWithdrawalAddress, LogAssetNote : LogAssetNote });
+      LogInvestmentPaidToWithdrawalAddress, LogAssetNote : LogAssetNote,  });
     }
 
     async callInterface(interfaceName) {
@@ -51,11 +54,13 @@ class Asset extends Component {
       alert(`The result from calling ${interfaceName} is ${response}`);
     }
 
-    // Used By ; USER
     async withdrawal(_assetID, _otherWithdrawal){
-      const { instance, web3 } = this.state;
-      const response = await instance.withdrawAsync(_assetID, _otherWithdrawal,{
-        from: web3.eth.coinbase, gas: 200000});
+      const { instance, web3, database } = this.state;
+      const addrSet = database.addressStorageAsync(keccak256("withdrawalAddress", web3.eth.coinbase));
+      if(addrSet !== '0x0' && addrSet !== '0'){
+        const response = await instance.withdrawAsync(_assetID, _otherWithdrawal,{
+          from: web3.eth.coinbase, gas: 200000});
+        }
     }
 
     // Used By ; Asset generating revenue

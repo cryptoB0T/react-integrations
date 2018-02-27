@@ -2,7 +2,8 @@ import React, { Component } from 'react';
 import { promisifyAll } from 'bluebird'
 
 import { getWeb3Async } from './util/web3'
-import { Database } from './util/Database'
+import Database from './util/Database'
+import Modifiers from './util/Modifiers'
 
 import ABIInterfaceArray from './util/abis/ABI.json'
 
@@ -49,10 +50,14 @@ class Web3App extends Component {
 
   render() {
     const { web3, isWeb3synced } = this.state;
-    
+
     const databaseInstance = new Database();
     databaseInstance.load(web3)
-    
+
+    const modifierInstance = new Modifiers();
+    modifierInstance.load(databaseInstance, web3);
+
+
     return (
       <div className="App">
         <header className="App-header">
@@ -67,10 +72,16 @@ class Web3App extends Component {
               <Accounts web3={web3} />
             </div>
             <div ref ='assetDiv' style={{display: 'none'}}>
-              <Asset web3={web3} />
+              <Asset
+                web3={web3}
+                Database ={databaseInstance}
+                 />
             </div>
             <div ref ='assetCreationDiv' style={{display: 'none'}}>
-              <AssetCreation web3={web3} />
+              <AssetCreation
+                web3={web3}
+                Database ={databaseInstance}
+                 />
             </div>
             <div ref ='bugBountyDiv' style={{display: 'none'}}>
               <BugBounty web3={web3} />
@@ -82,25 +93,39 @@ class Web3App extends Component {
               <ContractManager web3={web3} />
             </div>
             <div ref ='fundingHubDiv' style={{display: 'none'}}>
-              <FundingHub 
-                web3={web3} 
+              <FundingHub
+                web3={web3}
                 database={databaseInstance}
+                modifier={modifierInstance}
                 />
             </div>
             <div ref ='hashFunctionsDiv' style={{display: 'none'}}>
               <HashFunctions web3={web3} />
             </div>
             <div ref ='marketPlaceDiv' style={{display: 'none'}}>
-              <MarketPlace web3={web3} />
+              <MarketPlace
+                web3={web3}
+                database={databaseInstance}
+                modifier={modifierInstance}
+                />
             </div>
             <div ref ='tokenBurnDiv' style={{display: 'none'}}>
-              <TokenBurn web3={web3} />
+              <TokenBurn
+                 web3={web3}
+                 modifier={modifierInstance}
+               />
             </div>
             <div ref ='userAccessDiv' style={{display: 'none'}}>
-              <UserAccess web3={web3} />
+              <UserAccess
+                web3={web3}
+                modifier={modifierInstance}
+                />
             </div>
             <div ref ='withdrawalManagerDiv' style={{display: 'none'}}>
-              <WithdrawalManager web3={web3} />
+              <WithdrawalManager
+                 web3={web3}
+                 modifier={modifierInstance}
+                 />
             </div>
 
 

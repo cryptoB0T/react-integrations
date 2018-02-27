@@ -15,7 +15,9 @@ class UserAccess extends Component {
     constructor(props) {
       super(props)
       this.state = {
+        web3:null,
         instance:null,
+        modifier:null,
         LogBackupAddressUsed: null,
         LogUserApproved: null,
         LogUserRemoved: null,
@@ -28,13 +30,13 @@ class UserAccess extends Component {
     }
 
     async componentDidMount() {
-      const { web3 } = this.props;
+      const { web3, modifier } = this.props;
       const abi = await web3.eth.contract(ABIInterfaceArray)
       const instance = instancePromisifier(abi.at(SMART_CONTRACT_ADDRESS))
       const LogBackupAddressUsed = instance.LogBackupAddressUsed({},{fromBlock: 0, toBlock: 'latest'});
       const LogUserApproved = instance.LogUserApproved({},{fromBlock: 0, toBlock: 'latest'});
       const LogUserRemoved = instance.LogUserRemoved({},{fromBlock: 0, toBlock: 'latest'});
-      this.setState({ web3: web3, instance: instance, LogBackupAddressUsed: LogBackupAddressUsed,
+      this.setState({ web3: web3, instance: instance, modifier: modifier, LogBackupAddressUsed: LogBackupAddressUsed,
       LogUserApproved: LogUserApproved, LogUserRemoved })
     }
 
@@ -45,28 +47,20 @@ class UserAccess extends Component {
     }
 
     async setBackupAddress(_backupAddress){
-      const { instance, web3 } = this.state;
-      const response = await instance.setBackupAddress(_backupAddress,{
-        from: web3.eth.coinbase, gas:20000});
+      const { instance, web3, modifier} = this.state;
+      if(modifier.accessLevel() > 0){
+        const response = await instance.setBackupAddress(_backupAddress,{
+          from: web3.eth.coinbase, gas:20000});
+      }
     }
 
     async switchToBackup(_oldAddress, _newBackup){
-      const { instance, web3 } = this.state;
-      const response = await instance.switchToBackup(_oldAddress, _newBackup,{
-        from: web3.eth.coinbase, gas:20000});
+      const { instance, web3, modifier } = this.state;
+      if(modifier.accessLevel() > 0){
+        const response = await instance.switchToBackup(_oldAddress, _newBackup,{
+          from: web3.eth.coinbase, gas:20000});
+      }
     }
-
-    async approveUser(_newUser, _accessLevel){
-      const { instance, web3 } = this.state;
-      const response = await instance.approveUser(_newUser, _accessLevel,{
-        from: web3.eth.coinbase, gas:20000});
-      }
-
-    async removeUser(_user){
-      const { instance, web3 } = this.state;
-      const response = await instance.removeUser(_user,{
-        from: web3.eth.coinbase, gas:20000});
-      }
 
     render() {
         return (
@@ -95,29 +89,6 @@ class UserAccess extends Component {
               </button>
           }
 
-          {/*  TODO; */}
-          <br />
-          {
-            <button
-            style={{ margin: 'auto', display: 'block' }}
-            key={'approveUser'}
-            onClick={() => this.approveUser('_newUser', '_accessLevel')}
-            >
-            {'Approve User'}
-            </button>
-          }
-
-          {/*  TODO;  */}
-          <br />
-          {
-            <button
-            style={{ margin: 'auto', display: 'block' }}
-            key={'removeUser'}
-            onClick={() => this.removeUser('_user')}
-            >
-            {'Remove User'}
-            </button>
-          }
 
           </div>
         );

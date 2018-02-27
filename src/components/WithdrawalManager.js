@@ -15,7 +15,9 @@ class UserAccess extends Component {
     constructor(props) {
       super(props)
       this.state = {
+        web3:null,
         instance:null,
+        modifier:null,
         LogWithdrawalAddressSet:null,
         LogWithdrawalAddressRemoved:null,
         LogWithdrawalAddressUpdated:null,
@@ -27,13 +29,13 @@ class UserAccess extends Component {
     }
 
     async componentDidMount() {
-      const { web3 } = this.props;
+      const { web3, modifier } = this.props;
       const abi = await web3.eth.contract(ABIInterfaceArray)
       const instance = instancePromisifier(abi.at(SMART_CONTRACT_ADDRESS))
       const LogWithdrawalAddressSet = instance.LogWithdrawalAddressSet({},{fromBlock: 0, toBlock: 'latest'});
       const LogWithdrawalAddressRemoved = instance.LogWithdrawalAddressRemoved({},{fromBlock: 0, toBlock: 'latest'});
       const LogWithdrawalAddressUpdated = instance.LogWithdrawalAddressUpdated({},{fromBlock: 0, toBlock: 'latest'});
-      this.setState({ web3: web3, instance: instance, LogWithdrawalAddressSet : LogWithdrawalAddressSet,
+      this.setState({ web3: web3, instance: instance, modifier: modifier, LogWithdrawalAddressSet : LogWithdrawalAddressSet,
        LogWithdrawalAddressRemoved : LogWithdrawalAddressRemoved, LogWithdrawalAddressUpdated : LogWithdrawalAddressUpdated })
     }
 
@@ -44,21 +46,27 @@ class UserAccess extends Component {
     }
 
     async addWithdrawalAddress(_withdrawalAddress){
-      const { instance, web3 } = this.state;
-      const response = await instance.addWithdrawalAddress(_withdrawalAddress,{
-        from: web3.eth.coinbase, gas:20000});
+      const { instance, web3, modifier } = this.state;
+      if(!modifier.withdrawalAddressSet()){
+        const response = await instance.addWithdrawalAddress(_withdrawalAddress,{
+          from: web3.eth.coinbase, gas:20000});
+      }
     }
 
     async removeWithdrawalAddress(){
-      const { instance, web3 } = this.state;
-      const response = await instance.removeWithdrawalAddress({
-        from: web3.eth.coinbase, gas:20000});
+      const { instance, web3, modifier } = this.state;
+      if(modifier.withdrawalAddressSet()){
+        const response = await instance.removeWithdrawalAddress({
+          from: web3.eth.coinbase, gas:20000});
+        }
       }
 
     async updateWithdrawalAddress(_withdrawalAddress){
-      const { instance, web3 } = this.state;
-      const response = await instance.updateWithdrawalAddress(_withdrawalAddress,{
-        from: web3.eth.coinbase, gas:20000});
+      const { instance, web3, modifier } = this.state;
+      if(modifier.withdrawalAddressSet()){
+        const response = await instance.updateWithdrawalAddress(_withdrawalAddress,{
+          from: web3.eth.coinbase, gas:20000});
+        }
       }
 
     render() {

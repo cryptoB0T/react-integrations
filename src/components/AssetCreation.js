@@ -1,5 +1,6 @@
 import React, { Component } from 'react'
 import $ from 'jquery';
+import { keccak256 } from 'js-sha3';
 
 import { promisifyAll } from 'bluebird'
 import ABIInterfaceArray from '../util/abis/AssetCreation.json'
@@ -15,6 +16,8 @@ class Asset extends Component {
     constructor(props) {
       super(props)
       this.state = {
+        web3:null,
+        database: null,
         instance:null,
         LogAssetFundingStarted:null,
         LogAssetInfo:null,
@@ -26,17 +29,18 @@ class Asset extends Component {
       this.removeAsset = this.removeAsset.bind(this);
       this.changeFundingTime = this.changeFundingTime.bind(this);
       this.changeFundingPercentages = this.changeFundingPercentages.bind(this);
+      this.notZero = this.notZero.bind(this);
     }
 
     async componentDidMount() {
-      const { web3 } = this.props;
+      const { web3, database } = this.props;
       const abi = await web3.eth.contract(ABIInterfaceArray)
       const instance = instancePromisifier(abi.at(SMART_CONTRACT_ADDRESS))
       const LogAssetFundingStarted = instance.LogAssetFundingStarted({},{fromBlock: 0, toBlock: 'latest'});
       const LogAssetInfo = instance.LogAssetInfo({},{fromBlock: 0, toBlock: 'latest'});
       const LogAssetRemoved = instance.LogAssetRemoved({},{fromBlock: 0, toBlock: 'latest'});
       const LogFundingTimeChanged = instance.LogAssetRemoved({},{fromBlock: 0, toBlock: 'latest'});
-      this.setState({ web3: web3, instance: instance, LogAssetFundingStarted: LogAssetFundingStarted,
+      this.setState({ web3: web3, database: database, instance: instance, LogAssetFundingStarted: LogAssetFundingStarted,
        LogAssetInfo: LogAssetInfo, LogAssetRemoved: LogAssetRemoved, LogFundingTimeChanged: LogFundingTimeChanged})
     }
 
@@ -47,11 +51,13 @@ class Asset extends Component {
     }
 
     async newAsset(_storageHash, _amountToBeRaised, _installerID, _assetType){
-      const { instance, web3 } = this.state;
-      const response = await instance.newAssetAsync(
-        _storageHash, _amountToBeRaised, _installerID, _assetType,
-        {from: web3.eth.coinbase, gas:20000}
-      );
+      const { instance, web3} = this.state;
+      if(this.notZero(_amountToBeRaised)){
+        const response = await instance.newAssetAsync(
+          _storageHash, _amountToBeRaised, _installerID, _assetType,
+          {from: web3.eth.coinbase, gas:20000}
+        );
+      }
     }
 
     async removeAsset(_assetID, _functionSigner){
@@ -64,20 +70,30 @@ class Asset extends Component {
 
     async changeFundingTime(_newTimeGivenForFunding){
       const { instance, web3 } = this.state;
-      const response = await instance.changeFundingTimeAsync(
-        _newTimeGivenForFunding,
-        {from: web3.eth.coinbase, gas:20000}
-      );
+      if(this.notZero(_newTimeGivenForFunding)){
+        const response = await instance.changeFundingTimeAsync(
+          _newTimeGivenForFunding,
+          {from: web3.eth.coinbase, gas:20000}
+        );
+      }
     }
 
     async changeFundingPercentages(_myBitFoundationPercentage,
       _stakedTokenPercentage, _installerPercentage, _functionSigner){
       const { instance, web3 } = this.state;
-      const response = await instance.changeFundingPercentagesAsync(
-        _myBitFoundationPercentage,_stakedTokenPercentage,
-        _installerPercentage, _functionSigner,
-        {from: web3.eth.coinbase, gas:20000}
-      );
+      if(this.notZero(_myBitFoundationPercentage) &&
+        this.notZero(_stakedTokenPercentage) &&
+        this.notZero(_installerPercentage)){
+        const response = await instance.changeFundingPercentagesAsync(
+          _myBitFoundationPercentage,_stakedTokenPercentage,
+          _installerPercentage, _functionSigner,
+          {from: web3.eth.coinbase, gas:20000}
+        );
+      }
+    }
+
+    notZero(_uint){
+      return (_uint !== 0);
     }
 
       render() {

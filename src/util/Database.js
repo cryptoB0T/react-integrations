@@ -8,7 +8,7 @@ const instancePromisifier = (instance) => promisifyAll(instance, { suffix: 'Asyn
 
 
 export default class Database  {
-    
+
     async load(web3) {
         const abi = await web3.eth.contract(ABIInterfaceArray)
         this.instance = instancePromisifier(abi.at(SMART_CONTRACT_ADDRESS));
