@@ -37,7 +37,7 @@ class FundingHub extends Component {
     }
 
     async componentDidMount() {
-      const { web3 } = this.props;
+      const { web3, database } = this.props;
       const abi = await web3.eth.contract(ABIInterfaceArray)
       const instance = instancePromisifier(abi.at(SMART_CONTRACT_ADDRESS))
       const LogNewFunder = instance.LogNewFunder({},{fromBlock: 0, toBlock: 'latest'});

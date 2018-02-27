@@ -2,7 +2,7 @@ import React, { Component } from 'react';
 import { promisifyAll } from 'bluebird'
 
 import { getWeb3Async } from './util/web3'
-//import { Database } from './util/Database'
+import { Database } from './util/Database'
 
 import ABIInterfaceArray from './util/abis/ABI.json'
 
@@ -49,6 +49,10 @@ class Web3App extends Component {
 
   render() {
     const { web3, isWeb3synced } = this.state;
+    
+    const databaseInstance = new Database();
+    databaseInstance.load(web3)
+    
     return (
       <div className="App">
         <header className="App-header">
@@ -78,8 +82,10 @@ class Web3App extends Component {
               <ContractManager web3={web3} />
             </div>
             <div ref ='fundingHubDiv' style={{display: 'none'}}>
-              <FundingHub web3={web3} />
-              {/*database={database}*/}
+              <FundingHub 
+                web3={web3} 
+                database={databaseInstance}
+                />
             </div>
             <div ref ='hashFunctionsDiv' style={{display: 'none'}}>
               <HashFunctions web3={web3} />
