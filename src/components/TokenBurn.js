@@ -26,7 +26,7 @@ class TokenBurn extends Component {
       }
       this.callInterface = this.callInterface.bind(this);
       this.burnTokens = this.burnTokens.bind(this);
-      this.basicVerification = this.basicVerification.bind(this);
+      this.getEventInfo = this.getEventInfo.bind(this);
     }
 
     async componentDidMount() {
@@ -55,7 +55,42 @@ class TokenBurn extends Component {
          }
       }
 
+    async getEventInfo(_object){
+      var dictReturn = {
+                        _contractAddr: _object.address,
+                        _blockHash: _object.blockHash,
+                        _blockNumber: _object.blockNumer,
+                        _event: _object.event,
+                        _logIndex: _object.logIndex,
+                        _transactionHash: _object.transactionHash,
+                        _transactionIndex: _object._transactionIndex};
+      return dictReturn;
+    }
+
     render() {
+
+      { /*Store these in bigchainDB*/}
+      this.LogMyBitBurnt.watch(function(e,r){
+        if(!e){
+          var eventInfo = this.getEventInfo(r);
+          var _burner = r._burner;
+          var _amount = r._amount;
+          var _timestamp = r._timestamp;
+        }
+      });
+
+      { /*Store these in bigchainDB*/}
+      this.LogCallBackRecieved.watch(function(e,r){
+        if(!e){
+          var eventInfo = this.getEventInfo(r);
+          var _sender = r._sender;
+          var _usdPrice = r._usdPrice;
+          var _subscribeLevel = r._subscribeLevel;
+          var _myBitTokensNeeded = r._myBitTokensNeeded;
+          }
+      });
+
+
         return (
           <div>
             <br /><br />

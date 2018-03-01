@@ -37,6 +37,7 @@ class MarketPlace extends Component {
       this.buyOrderExists = this.buyOrderExists.bind(this);
       this.sellOrderExists = this.sellOrderExists.bind(this);
       this.needsToWithdraw = this.needsToWithdraw.bind(this);
+      this.getEventInfo = this.getEventInfo.bind(this);
     }
 
     async componentDidMount() {
@@ -168,8 +169,72 @@ class MarketPlace extends Component {
       return (finalPayment === 0);
     }
 
+    async getEventInfo(_object){
+      var dictReturn = {
+                        _contractAddr: _object.address,
+                        _blockHash: _object.blockHash,
+                        _blockNumber: _object.blockNumer,
+                        _event: _object.event,
+                        _logIndex: _object.logIndex,
+                        _transactionHash: _object.transactionHash,
+                        _transactionIndex: _object._transactionIndex};
+      return dictReturn;
+    }
 
     render() {
+
+      { /*Store these in bigchainDB*/}
+      this.LogDestruction.watch(function(e,r){
+        if(!e){
+          var eventInfo = this.getEventInfo(r);
+          var _locationSent = r._locationSent;
+          var _amountSent = r._amountSent;
+          var _caller = r._caller;
+        }
+      });
+
+      { /*Store these in bigchainDB*/}
+      this.LogSellOrderCreated.watch(function(e,r){
+        if(!e){
+          var eventInfo = this.getEventInfo(r);
+          var _id = r._id;
+          var _assetAddress = r._assetAddress;
+          var _creator = r._creator;
+          }
+      });
+
+      { /*Store these in bigchainDB*/}
+      this.LogBuyOrderCreated.watch(function(e,r){
+        if(!e){
+          var eventInfo = this.getEventInfo(r);
+          var _id = r._id;
+          var _assetAddress = r._assetAddress;
+          var _creator = r._creator;
+        }
+      });
+
+      { /*Store these in bigchainDB*/}
+      this.LogBuyOrderCompleted.watch(function(e,r){
+        if(!e){
+          var eventInfo = this.getEventInfo(r);
+          var _id = r._id;
+          var _assetAddress = r._assetAddress;
+          var _purchaser = r._purchaser;
+        }
+      });
+
+      { /*Store these in bigchainDB*/}
+      this.LogSellOrderCompleted.watch(function(e,r){
+        if(!e){
+          var eventInfo = this.getEventInfo(r);
+          var _id = r._id;
+          var _assetAddress = r._assetAddress;
+          var _purchaser = r._purchaser;
+        }
+      });
+
+
+
         return (
           <div>
             <br /><br />

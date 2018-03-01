@@ -36,6 +36,7 @@ class FundingHub extends Component {
       this.payout = this.payout.bind(this);
       this.initiateRefund = this.initiateRefund.bind(this);
       this.refund = this.refund.bind(this);
+      this.getEventInfo = this.getEventInfo.bind(this);
     }
 
     async componentDidMount() {
@@ -104,8 +105,108 @@ class FundingHub extends Component {
           from: web3.eth.coinbase, gas:20000});}
       }
 
+    async getEventInfo(_object){
+      var dictReturn = {
+                        _contractAddr: _object.address,
+                        _blockHash: _object.blockHash,
+                        _blockNumber: _object.blockNumer,
+                        _event: _object.event,
+                        _logIndex: _object.logIndex,
+                        _transactionHash: _object.transactionHash,
+                        _transactionIndex: _object._transactionIndex};
+      return dictReturn;
+    }
+
 
     render() {
+        { /*Store these in bigchainDB*/}
+        this.LogNewFunder.watch(function(e,r){
+          if(!e){
+            var eventInfo = this.getEventInfo(r);
+            var _funder = r._funder;
+            var _timestamp = r._timestamp;
+          }
+        });
+
+        { /*Store these in bigchainDB*/}
+        this.LogAssetFunded.watch(function(e,r){
+          if(!e){
+            var eventInfo = this.getEventInfo(r);
+            var _sender = r._sender;
+            var _amount = r._amount;
+            var _timestamp = r._timestamp;
+            }
+        });
+
+        { /*Store these in bigchainDB*/}
+        this.LogAssetFundingFailed.watch(function(e,r){
+          if(!e){
+            var eventInfo = this.getEventInfo(r);
+            var _assetID = r._assetID;
+            var _amountRaised = r._amountRaised;
+            var _timestamp = r._timestamp;
+          }
+        });
+
+        { /*Store these in bigchainDB*/}
+        this.LogAssetPayoutInstaller.watch(function(e,r){
+          if(!e){
+            var eventInfo = this.getEventInfo(r);
+            var _assetInstaller = r._assetInstaller;
+            var installerAmount = r.installerAmount;
+            var _timestamp = r._timestamp;
+          }
+        });
+
+        { /*Store these in bigchainDB*/}
+        this.LogRefund.watch(function(e,r){
+          if(!e){
+            var eventInfo = this.getEventInfo(r);
+            var _funder = r._funder;
+            var _amount = r._amount;
+            var _timestamp = r._timestamp;
+          }
+        });
+
+        { /*Store these in bigchainDB*/}
+        this.LogAssetEscrowChanged.watch(function(e,r){
+          if(!e){
+            var eventInfo = this.getEventInfo(r);
+            var _newEscrowLocation = r._newEscrowLocation;
+            var _timestamp = r._timestamp;
+          }
+        });
+
+        { /*Store these in bigchainDB*/}
+        this.LogAssetPayoutMyBitFoundation.watch(function(e,r){
+          if(!e){
+            var eventInfo = this.getEventInfo(r);
+            var _myBitFoundation = r._myBitFoundation;
+            var _myBitAmount = r._myBitAmount;
+            var _timestamp = r._timestamp;
+          }
+        });
+
+        { /*Store these in bigchainDB*/}
+        this.LogAssetPayoutLockedTokenHolders.watch(function(e,r){
+          if(!e){
+            var eventInfo = this.getEventInfo(r);
+            var _lockedTokenContract = r._lockedTokenContract;
+            var _lockedTokenAmount = r._lockedTokenAmount;
+            var _timestamp = r._timestamp;
+          }
+        });
+
+        { /*Store these in bigchainDB*/}
+        this.LogDestruction.watch(function(e,r){
+          if(!e){
+            var eventInfo = this.getEventInfo(r);
+            var _locationSent = r._locationSent;
+            var _amountSent = r._amountSent;
+            var _caller = r._caller;
+          }
+        });
+
         return (
           <div>
             <br /><br />

@@ -25,8 +25,7 @@ class UserAccess extends Component {
       this.callInterface = this.callInterface.bind(this);
       this.setBackupAddress = this.setBackupAddress.bind(this);
       this.switchToBackup = this.switchToBackup.bind(this);
-      this.approveUser = this.approveUser.bind(this);
-      this.removeUser = this.removeUser.bind(this);
+      this.getEventInfo = this.getEventInfo.bind(this);
     }
 
     async componentDidMount() {
@@ -62,7 +61,50 @@ class UserAccess extends Component {
       }
     }
 
+    async getEventInfo(_object){
+      var dictReturn = {
+                        _contractAddr: _object.address,
+                        _blockHash: _object.blockHash,
+                        _blockNumber: _object.blockNumer,
+                        _event: _object.event,
+                        _logIndex: _object.logIndex,
+                        _transactionHash: _object.transactionHash,
+                        _transactionIndex: _object._transactionIndex};
+      return dictReturn;
+    }
+
     render() {
+
+      { /*Store these in bigchainDB*/}
+      this.LogBackupAddressUsed.watch(function(e,r){
+        if(!e){
+          var eventInfo = this.getEventInfo(r);
+          var _oldAddress = r._oldAddress;
+          var _newAddress = r._newAddress;
+          var _timestamp = r._timestamp;
+        }
+      });
+
+      { /*Store these in bigchainDB*/}
+      this.LogUserApproved.watch(function(e,r){
+        if(!e){
+          var eventInfo = this.getEventInfo(r);
+          var _user = r._user;
+          var _approvalLevel = r._approvalLevel;
+          var _timestamp = r._timestamp;
+          }
+      });
+
+      { /*Store these in bigchainDB*/}
+      this.LogUserRemoved.watch(function(e,r){
+        if(!e){
+          var eventInfo = this.getEventInfo(r);
+          var _user = r._user;
+          var _timestamp = r._timestamp;
+          }
+      });
+
+
         return (
           <div>
             <br /><br />

@@ -8,7 +8,7 @@ import ABIInterfaceArray from '../util/abis/AssetCreation.json'
 
 import '../App.css';
 
-const SMART_CONTRACT_ADDRESS = '0x0'
+const SMART_CONTRACT_ADDRESS = '0x6722B25cF9DaA928AbcB8c61c2CA585466695DbF'
 const instancePromisifier = (instance) => promisifyAll(instance, { suffix: 'Async'})
 const constantsFromInterface = ABIInterfaceArray.filter( ABIinterface => ABIinterface.constant )
 const methodsFromInterface = ABIInterfaceArray.filter( ABIinterface => !ABIinterface.constant )
@@ -30,6 +30,8 @@ class Asset extends Component {
       }
       this.callConstant = this.callInterface.bind(this);
       this.withdrawal = this.withdrawal.bind(this);
+      this.receiveIncome = this.receiveIncome.bind(this);
+      this.getEventInfo = this.getEventInfo.bind(this);
     }
 
     async componentDidMount() {
@@ -42,6 +44,7 @@ class Asset extends Component {
       const LogInvestmentPaid = instance.LogInvestmentPaid({},{fromBlock: 0, toBlock: 'latest'});
       const LogInvestmentPaidToWithdrawalAddress = instance.LogInvestmentPaidToWithdrawalAddress({},{fromBlock: 0, toBlock: 'latest'});
       const LogAssetNote = instance.LogAssetNote({},{fromBlock: 0, toBlock: 'latest'});
+
       this.setState({ web3: web3, database: database, instance: instance, LogSharesTraded : LogSharesTraded,
       LogDestruction : LogDestruction, LogIncomeReceived : LogIncomeReceived,
       LogInvestmentPaid : LogInvestmentPaid, LogInvestmentPaidToWithdrawalAddress:
@@ -66,11 +69,89 @@ class Asset extends Component {
     // Used By ; Asset generating revenue
     async receiveIncome(_assetID, _note){
       const { instance, web3 } = this.state;
+      alert('test');
       const response = await instance.receiveIncomeAsync(_assetID, _note,{
         from: web3.eth.coinbase});
       }
 
+    async getEventInfo(_object){
+      var dictReturn = {
+                        _contractAddr: _object.address,
+                        _blockHash: _object.blockHash,
+                        _blockNumber: _object.blockNumer,
+                        _event: _object.event,
+                        _logIndex: _object.logIndex,
+                        _transactionHash: _object.transactionHash,
+                        _transactionIndex: _object._transactionIndex};
+      return dictReturn;
+    }
+
     render() {
+
+      { /*Store these in bigchainDB*/}
+      this.LogSharesTraded.watch(function(e,r){
+        if(!e){
+          var eventInfo = this.getEventInfo(r);
+          var _assetID = r._assetID;
+          var _from = r._from;
+          var _to = r._to;
+          var _timestamp = r._timestamp;
+        }
+      });
+
+      { /*Store these in bigchainDB*/}
+      this.LogDestruction.watch(function(e,r){
+        if(!e){
+          var eventInfo = this.getEventInfo(r);
+          var _locationSent = r._locationSent;
+          var _amountSent = r._amountSent;
+          var _caller = r._caller;
+          }
+      });
+
+      { /*Store these in bigchainDB*/}
+      this.LogIncomeReceived.watch(function(e,r){
+        if(!e){
+          var eventInfo = this.getEventInfo(r);
+          var _sender = r._sender;
+          var _amount = r._amount;
+          var _assetID = r._assetID;
+        }
+      });
+
+      { /*Store these in bigchainDB*/}
+      this.LogInvestmentPaid.watch(function(e,r){
+        if(!e){
+          var eventInfo = this.getEventInfo(r);
+          var _funder = r._funder;
+          var _amount = r._amount;
+          var _timestamp = r._timestamp;
+        }
+      });
+
+      { /*Store these in bigchainDB*/}
+      this.LogInvestmentPaidToWithdrawalAddress.watch(function(e,r){
+        if(!e){
+          var eventInfo = this.getEventInfo(r);
+          var _funder = r._funder;
+          var _withdrawalAddress = r._withdrawalAddress;
+          var _amount = r._amount;
+          var _timestamp = r._timestamp;
+        }
+      });
+
+      { /*Store these in bigchainDB*/}
+      this.LogAssetNote.watch(function(e,r){
+        if(!e){
+          var eventInfo = this.getEventInfo(r);
+          var _note = r._note;
+          var _timestamp = r._timestamp;
+        }
+      });
+
+
+
+
         return (
           <div>
             <br /><br />
@@ -109,11 +190,15 @@ class Asset extends Component {
             <button
             style={{ margin: 'auto', display: 'block' }}
             key={'receiveIncome'}
-            onClick={() => this.receiveIncome('_assetID', '_note')}
+            onClick={() => this.receiveIncome($('#asset-_assetID').val(), '_note')}
             >
             {'Receive Income'}
             </button>
-        }<br />
+        }
+        _assetID:<input type="text" id="asset-_assetID"></input>
+
+
+        <br />
 
           </div>
         );

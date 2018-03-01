@@ -28,6 +28,7 @@ class StakingBank extends Component {
       this.callConstant = this.callInterface.bind(this);
       this.requestWithdraw = this.requestWithdraw.bind(this);
       this.withdraw = this.withdraw.bind(this);
+      this.getEventInfo = this.getEventInfo.bind(this);
     }
 
     async componentDidMount() {
@@ -64,9 +65,60 @@ class StakingBank extends Component {
           from: web3.eth.coinbase, gas:20000})
       }
 
-
+    async getEventInfo(_object){
+      var dictReturn = {
+                        _contractAddr: _object.address,
+                        _blockHash: _object.blockHash,
+                        _blockNumber: _object.blockNumer,
+                        _event: _object.event,
+                        _logIndex: _object.logIndex,
+                        _transactionHash: _object.transactionHash,
+                        _transactionIndex: _object._transactionIndex};
+      return dictReturn;
+    }
 
     render() {
+
+      { /*Store these in bigchainDB*/}
+      this.LogDestruction.watch(function(e,r){
+        if(!e){
+          var eventInfo = this.getEventInfo(r);
+          var _locationSent = r._locationSent;
+          var _amountSent = r._amountSent;
+          var _caller = r._caller;
+        }
+      });
+
+      { /*Store these in bigchainDB*/}
+      this.LogFeeReceived.watch(function(e,r){
+        if(!e){
+          var eventInfo = this.getEventInfo(r);
+          var _sender = r._sender;
+          var _amount = r._amount;
+          var _blockNumber = r._blockNumber;
+          }
+      });
+
+      { /*Store these in bigchainDB*/}
+      this.LogTokensStaked.watch(function(e,r){
+        if(!e){
+          var eventInfo = this.getEventInfo(r);
+          var _staker = r._staker;
+          var _blockNumber = r._blockNumber;
+          var _ID = r._ID;
+        }
+      });
+
+      { /*Store these in bigchainDB*/}
+      this.LogTokenWithdraw.watch(function(e,r){
+        if(!e){
+          var eventInfo = this.getEventInfo(r);
+          var _staker = r._staker;
+          var _blockNumber = r._blockNumber;
+          var _ID = r._ID;
+        }
+      });
+
         return (
           <div>
             <br /><br />

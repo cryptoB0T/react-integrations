@@ -30,6 +30,7 @@ class Asset extends Component {
       this.changeFundingTime = this.changeFundingTime.bind(this);
       this.changeFundingPercentages = this.changeFundingPercentages.bind(this);
       this.notZero = this.notZero.bind(this);
+      this.getEventInfo = this.getEventInfo.bind(this);
     }
 
     async componentDidMount() {
@@ -92,11 +93,65 @@ class Asset extends Component {
       }
     }
 
+    async getEventInfo(_object){
+      var dictReturn = {
+                        _contractAddr: _object.address,
+                        _blockHash: _object.blockHash,
+                        _blockNumber: _object.blockNumer,
+                        _event: _object.event,
+                        _logIndex: _object.logIndex,
+                        _transactionHash: _object.transactionHash,
+                        _transactionIndex: _object._transactionIndex};
+      return dictReturn;
+    }
+
     notZero(_uint){
       return (_uint !== 0);
     }
 
       render() {
+
+
+        { /*Store these in bigchainDB*/}
+        this.LogAssetFundingStarted.watch(function(e,r){
+          if(!e){
+            var eventInfo = this.getEventInfo(r);
+            var _creator = r._creator;
+            var _assetLocation = r._assetLocation;
+            var _assetType = r._assetType;
+          }
+        });
+
+        { /*Store these in bigchainDB*/}
+        this.LogAssetInfo.watch(function(e,r){
+          if(!e){
+            var eventInfo = this.getEventInfo(r);
+            var _storageHash = r._storageHash;
+            var _installerID = r._installerID;
+            var _assetType = r._assetType;
+            }
+        });
+
+        { /*Store these in bigchainDB*/}
+        this.LogAssetRemoved.watch(function(e,r){
+          if(!e){
+            var eventInfo = this.getEventInfo(r);
+            var _remover = r._remover;
+            var _id = r._id;
+            var _timestamp = r._timestamp;
+          }
+        });
+
+        { /*Store these in bigchainDB*/}
+        this.LogFundingTimeChanged.watch(function(e,r){
+          if(!e){
+            var eventInfo = this.getEventInfo(r);
+            var _sender = r._sender;
+            var _newTimeForFunding = r._newTimeForFunding;
+            var _blockTimestamp = r._blockTimestamp;
+          }
+        });
+
           return (
             <div>
               <br /><br />

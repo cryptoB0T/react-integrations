@@ -41,7 +41,7 @@ class Web3App extends Component {
   }
 
   divVisibility(){
-   var x = this.refs.hashFunctionsDiv;
+   var x = this.refs.assetDiv;
       if (x.style.display === "none") {
           x.style.display = "block";
       } else {
@@ -83,9 +83,9 @@ class Web3App extends Component {
                 web3={web3}
                 Database ={databaseInstance}
                  />
-            </div>BugBank
+            </div>
             <div ref ='bugBankDiv' style={{display: 'none'}}>
-              <AssetCreation
+              <BugBank
                 web3={web3}
                 Database ={databaseInstance}
                  />
@@ -113,7 +113,7 @@ class Web3App extends Component {
                 database={databaseInstance}
                 modifier={modifierInstance}
                 />
-            </div>StakingBank
+            </div>
             <div ref ='stakingBankDiv' style={{display: 'none'}}>
               <MarketPlace
                 web3={web3}

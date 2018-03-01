@@ -26,6 +26,7 @@ class UserAccess extends Component {
       this.addWithdrawalAddress = this.addWithdrawalAddress.bind(this);
       this.removeWithdrawalAddress = this.removeWithdrawalAddress.bind(this);
       this.updateWithdrawalAddress = this.updateWithdrawalAddress.bind(this);
+      this.getEventInfo = this.getEventInfo.bind(this);
     }
 
     async componentDidMount() {
@@ -69,7 +70,51 @@ class UserAccess extends Component {
         }
       }
 
+    async getEventInfo(_object){
+      var dictReturn = {
+                        _contractAddr: _object.address,
+                        _blockHash: _object.blockHash,
+                        _blockNumber: _object.blockNumer,
+                        _event: _object.event,
+                        _logIndex: _object.logIndex,
+                        _transactionHash: _object.transactionHash,
+                        _transactionIndex: _object._transactionIndex};
+      return dictReturn;
+    }
+
     render() {
+
+      { /*Store these in bigchainDB*/}
+      this.LogWithdrawalAddressSet.watch(function(e,r){
+        if(!e){
+          var eventInfo = this.getEventInfo(r);
+          var _user = r._user;
+          var _newAddress = r._newAddress;
+          var _timestamp = r._timestamp;
+        }
+      });
+
+      { /*Store these in bigchainDB*/}
+      this.LogWithdrawalAddressRemoved.watch(function(e,r){
+        if(!e){
+          var eventInfo = this.getEventInfo(r);
+          var _user = r._user;
+          var _removedAddress = r._removedAddress;
+          var _timestamp = r._timestamp;
+          }
+      });
+
+      { /*Store these in bigchainDB*/}
+      this.LogWithdrawalAddressUpdated.watch(function(e,r){
+        if(!e){
+          var eventInfo = this.getEventInfo(r);
+          var _user = r._user;
+          var _oldAddress = r._oldAddress;
+          var _updatedAddress = r._updatedAddress;
+          var _timestamp = r._timestamp;
+          }
+      });
+
         return (
           <div>
             <br /><br />
