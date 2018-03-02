@@ -149,9 +149,6 @@ class Asset extends Component {
         }
       });
 
-
-
-
         return (
           <div>
             <br /><br />
