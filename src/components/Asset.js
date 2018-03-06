@@ -4,11 +4,11 @@ import { keccak256 } from 'js-sha3';
 
 import { promisifyAll } from 'bluebird'
 
-import ABIInterfaceArray from '../util/abis/AssetCreation.json'
+import ABIInterfaceArray from '../util/abis/Asset.json'
 
 import '../App.css';
 
-const SMART_CONTRACT_ADDRESS = '0x6722B25cF9DaA928AbcB8c61c2CA585466695DbF'
+const SMART_CONTRACT_ADDRESS = '0x4cbd4ac2d9c6f8103378f669af63eeffdca435f9'
 const instancePromisifier = (instance) => promisifyAll(instance, { suffix: 'Async'})
 const constantsFromInterface = ABIInterfaceArray.filter( ABIinterface => ABIinterface.constant )
 const methodsFromInterface = ABIInterfaceArray.filter( ABIinterface => !ABIinterface.constant )
@@ -20,13 +20,7 @@ class Asset extends Component {
       this.state = {
         web3:null,
         database:null,
-        instance:null,
-        LogSharesTraded:null,
-        LogDestruction:null,
-        LogIncomeReceived:null,
-        LogInvestmentPaid:null,
-        LogInvestmentPaidToWithdrawalAddress:null,
-        LogAssetNote:null,
+        instance:null
       }
       this.callConstant = this.callInterface.bind(this);
       this.withdrawal = this.withdrawal.bind(this);
@@ -36,20 +30,11 @@ class Asset extends Component {
 
     async componentDidMount() {
       const { web3, database } = this.props;
-      const abi = await web3.eth.contract(ABIInterfaceArray)
-      const instance = instancePromisifier(abi.at(SMART_CONTRACT_ADDRESS))
-      const LogSharesTraded = instance.LogSharesTraded({},{fromBlock: 0, toBlock: 'latest'});
-      const LogDestruction = instance.LogDestruction({},{fromBlock: 0, toBlock: 'latest'});
-      const LogIncomeReceived = instance.LogIncomeReceived({},{fromBlock: 0, toBlock: 'latest'});
-      const LogInvestmentPaid = instance.LogInvestmentPaid({},{fromBlock: 0, toBlock: 'latest'});
-      const LogInvestmentPaidToWithdrawalAddress = instance.LogInvestmentPaidToWithdrawalAddress({},{fromBlock: 0, toBlock: 'latest'});
-      const LogAssetNote = instance.LogAssetNote({},{fromBlock: 0, toBlock: 'latest'});
-
-      this.setState({ web3: web3, database: database, instance: instance, LogSharesTraded : LogSharesTraded,
-      LogDestruction : LogDestruction, LogIncomeReceived : LogIncomeReceived,
-      LogInvestmentPaid : LogInvestmentPaid, LogInvestmentPaidToWithdrawalAddress:
-      LogInvestmentPaidToWithdrawalAddress, LogAssetNote : LogAssetNote,  });
+      const abi = await web3.eth.contract(ABIInterfaceArray);
+      const instance = instancePromisifier(abi.at(SMART_CONTRACT_ADDRESS));
+      this.setState({ web3: web3, database: database, instance: instance });
     }
+
 
     async callInterface(interfaceName) {
       const { instance } = this.state;
@@ -57,21 +42,42 @@ class Asset extends Component {
       alert(`The result from calling ${interfaceName} is ${response}`);
     }
 
+
     async withdrawal(_assetID, _otherWithdrawal){
       const { instance, web3, database } = this.state;
-      const addrSet = database.addressStorageAsync(keccak256("withdrawalAddress", web3.eth.coinbase));
-      if(addrSet !== '0x0' && addrSet !== '0'){
-        const response = await instance.withdrawAsync(_assetID, _otherWithdrawal,{
-          from: web3.eth.coinbase, gas: 200000});
-        }
-    }
+      const addrSet = await database.addressStorage(keccak256("withdrawalAddress", web3.eth.coinbase));
+      if(addrSet !== 'ff' &&
+         addrSet !== 'dd'
+       ){
+         instance.withdraw.estimateGas(
+           _assetID, _otherWithdrawal,
+           {from:web3.eth.coinbase},
+           async function(e, gasEstimate){
+             alert(e);
+             if(!e){
+               const response = await instance.withdrawAsync(
+                 _assetID, _otherWithdrawal,
+                 {from:web3.eth.coinbase, gas:gasEstimate});
+             }
+         });
+       }
+     }
+
 
     // Used By ; Asset generating revenue
     async receiveIncome(_assetID, _note){
       const { instance, web3 } = this.state;
-      alert('test');
-      const response = await instance.receiveIncomeAsync(_assetID, _note,{
-        from: web3.eth.coinbase});
+      instance.receiveIncome.estimateGas(
+        _assetID, _note,
+        {from:web3.eth.coinbase},
+        async function(e, gasEstimate){
+        if(!e){
+          console.log(gasEstimate);
+          const response = await instance.receiveIncomeAsync(
+            _assetID, _note,
+            {from: web3.eth.coinbase, gas: gasEstimate});
+        }
+      });
       }
 
     async getEventInfo(_object){
@@ -87,71 +93,8 @@ class Asset extends Component {
     }
 
     render() {
-
-      { /*Store these in bigchainDB*/}
-      this.LogSharesTraded.watch(function(e,r){
-        if(!e){
-          var eventInfo = this.getEventInfo(r);
-          var _assetID = r._assetID;
-          var _from = r._from;
-          var _to = r._to;
-          var _timestamp = r._timestamp;
-        }
-      });
-
-      { /*Store these in bigchainDB*/}
-      this.LogDestruction.watch(function(e,r){
-        if(!e){
-          var eventInfo = this.getEventInfo(r);
-          var _locationSent = r._locationSent;
-          var _amountSent = r._amountSent;
-          var _caller = r._caller;
-          }
-      });
-
-      { /*Store these in bigchainDB*/}
-      this.LogIncomeReceived.watch(function(e,r){
-        if(!e){
-          var eventInfo = this.getEventInfo(r);
-          var _sender = r._sender;
-          var _amount = r._amount;
-          var _assetID = r._assetID;
-        }
-      });
-
-      { /*Store these in bigchainDB*/}
-      this.LogInvestmentPaid.watch(function(e,r){
-        if(!e){
-          var eventInfo = this.getEventInfo(r);
-          var _funder = r._funder;
-          var _amount = r._amount;
-          var _timestamp = r._timestamp;
-        }
-      });
-
-      { /*Store these in bigchainDB*/}
-      this.LogInvestmentPaidToWithdrawalAddress.watch(function(e,r){
-        if(!e){
-          var eventInfo = this.getEventInfo(r);
-          var _funder = r._funder;
-          var _withdrawalAddress = r._withdrawalAddress;
-          var _amount = r._amount;
-          var _timestamp = r._timestamp;
-        }
-      });
-
-      { /*Store these in bigchainDB*/}
-      this.LogAssetNote.watch(function(e,r){
-        if(!e){
-          var eventInfo = this.getEventInfo(r);
-          var _note = r._note;
-          var _timestamp = r._timestamp;
-        }
-      });
-
         return (
           <div>
-            <br /><br />
             {
               constantsFromInterface.map( constant => (
               <button
@@ -168,11 +111,15 @@ class Asset extends Component {
             {
               <button
               key={'withdrawal'}
-              onClick={() => this.withdrawal('_assetID', $('#otherWithdrawal-select :selected').val())}
+              onClick={() => this.withdrawal(
+                $('#asset-withdraw_assetID').val(),
+                $('#otherWithdrawal-select :selected').val()
+              )}
               >
               {'Withdrawal:'}
               </button>
           }
+          _assetID:<input type="text" id="asset-withdraw_assetID"></input>
           <select id='otherWithdrawal-select'>
             <option value="true">MetaMask</option>
             <option value="false">Uphold</option>
@@ -196,6 +143,8 @@ class Asset extends Component {
 
 
         <br />
+          <br /><br />
+
 
           </div>
         );

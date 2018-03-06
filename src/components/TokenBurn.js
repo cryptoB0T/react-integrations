@@ -9,7 +9,7 @@ import ABIInterfaceArray from '../util/abis/TokenBurn.json'
 
 import '../App.css';
 
-const SMART_CONTRACT_ADDRESS = '0x0'
+const SMART_CONTRACT_ADDRESS = '0x299ad791cd98face8cda6a65c4897449779bb4f0'
 const instancePromisifier = (instance) => promisifyAll(instance, { suffix: 'Async'})
 const constantsFromInterface = ABIInterfaceArray.filter( ABIinterface => ABIinterface.constant )
 
@@ -33,10 +33,7 @@ class TokenBurn extends Component {
       const { web3, modifier } = this.props;
       const abi = await web3.eth.contract(ABIInterfaceArray)
       const instance = instancePromisifier(abi.at(SMART_CONTRACT_ADDRESS))
-      const LogMyBitBurnt = instance.LogMyBitBurnt({},{fromBlock: 0, toBlock: 'latest'});
-      const LogCallBackRecieved = instance.LogCallBackRecieved({},{fromBlock: 0, toBlock: 'latest'});
-      this.setState({ web3: web3, instance: instance, modifier: modifier, LogMyBitBurnt: LogMyBitBurnt,
-       LogCallBackRecieved: LogCallBackRecieved})
+      this.setState({ web3: web3, instance: instance, modifier: modifier})
     }
 
     async callInterface(interfaceName) {
@@ -50,10 +47,18 @@ class TokenBurn extends Component {
       if(modifier.accessLevel() >=1 &&
          modifier.accessLevel() < _accessLevelDesired &&
          _accessLevelDesired < 5){
-           const response = await instance.burnTokens(_accessLevelDesired,{
-             from: web3.eth.coinbase, gas:20000});
-         }
-      }
+           instance.burnTokens.estimateGas(
+               _accessLevelDesired,
+               {from:web3.eth.coinbase},
+               async function(e, gasEstimate){
+                 if(!e){
+                   const response = await instance.burnTokensAsync(_accessLevelDesired,{
+                     from: web3.eth.coinbase, gas:gasEstimate});
+                 }
+              }
+            )
+          }
+        }
 
     async getEventInfo(_object){
       var dictReturn = {
@@ -69,31 +74,8 @@ class TokenBurn extends Component {
 
     render() {
 
-      { /*Store these in bigchainDB*/}
-      this.LogMyBitBurnt.watch(function(e,r){
-        if(!e){
-          var eventInfo = this.getEventInfo(r);
-          var _burner = r._burner;
-          var _amount = r._amount;
-          var _timestamp = r._timestamp;
-        }
-      });
-
-      { /*Store these in bigchainDB*/}
-      this.LogCallBackRecieved.watch(function(e,r){
-        if(!e){
-          var eventInfo = this.getEventInfo(r);
-          var _sender = r._sender;
-          var _usdPrice = r._usdPrice;
-          var _subscribeLevel = r._subscribeLevel;
-          var _myBitTokensNeeded = r._myBitTokensNeeded;
-          }
-      });
-
-
         return (
           <div>
-            <br /><br />
             {
               constantsFromInterface.map( constant => (
               <button
@@ -122,8 +104,7 @@ class TokenBurn extends Component {
             <option value="3">3</option>
             <option value="4">4</option>
           </select>
-
-
+          <br /><br /><br /><br />
           </div>
         );
       }

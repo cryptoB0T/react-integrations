@@ -179,7 +179,7 @@ class HashFunctions extends Component {
           {
             <button
             style={{ margin: 'auto', display: 'block' }}
-            key={'stringAddress'}
+            key={'stringUint'}
             onClick={() => this.stringUint('_param', '_paramTwo')}
             >
             {'String Uint'}
@@ -203,13 +203,14 @@ class HashFunctions extends Component {
           {
             <button
             style={{ margin: 'auto', display: 'block' }}
-            key={'stringBytesAddress'}
+            key={'getAuthorizeHash'}
             onClick={() => this.getAuthorizeHash('_param', '_paramTwo', '_paramThree')}
             >
             {'String Bytes Address'}
             </button>
           }
 
+          <br /><br /><br /><br />
 
 
 

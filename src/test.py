@@ -7,8 +7,8 @@ import subprocess
 def main():
 
     for fileName in os.listdir(os.getcwd()+'/contracts/'):
+        subprocess.Popen(['solc', '--abi', fileName, '--overwrite', '-o', './util/abis/'], cwd=os.getcwd()+'/contracts/')
 
-        subprocess.Popen(['solc', '--abi', fileName, '--overwrite', '-o', '/abi/'], cwd=os.getcwd()+'/contracts/')
 
 if __name__ == "__main__":
 

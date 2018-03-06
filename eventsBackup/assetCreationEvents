@@ -1,0 +1,40 @@
+
+        { /*Store these in bigchainDB*/}
+        this.LogAssetFundingStarted.watch(function(e,r){
+          if(!e){
+            var eventInfo = this.getEventInfo(r);
+            var _creator = r._creator;
+            var _assetLocation = r._assetLocation;
+            var _assetType = r._assetType;
+          }
+        });
+
+        { /*Store these in bigchainDB*/}
+        this.LogAssetInfo.watch(function(e,r){
+          if(!e){
+            var eventInfo = this.getEventInfo(r);
+            var _storageHash = r._storageHash;
+            var _installerID = r._installerID;
+            var _assetType = r._assetType;
+            }
+        });
+
+        { /*Store these in bigchainDB*/}
+        this.LogAssetRemoved.watch(function(e,r){
+          if(!e){
+            var eventInfo = this.getEventInfo(r);
+            var _remover = r._remover;
+            var _id = r._id;
+            var _timestamp = r._timestamp;
+          }
+        });
+
+        { /*Store these in bigchainDB*/}
+        this.LogFundingTimeChanged.watch(function(e,r){
+          if(!e){
+            var eventInfo = this.getEventInfo(r);
+            var _sender = r._sender;
+            var _newTimeForFunding = r._newTimeForFunding;
+            var _blockTimestamp = r._blockTimestamp;
+          }
+        });

@@ -1,3 +1,92 @@
+{ /*Store these in bigchainDB*/}
+this.LogNewFunder.watch(function(e,r){
+  if(!e){
+    var eventInfo = this.getEventInfo(r);
+    var _funder = r._funder;
+    var _timestamp = r._timestamp;
+  }
+});
+
+{ /*Store these in bigchainDB*/}
+this.LogAssetFunded.watch(function(e,r){
+  if(!e){
+    var eventInfo = this.getEventInfo(r);
+    var _sender = r._sender;
+    var _amount = r._amount;
+    var _timestamp = r._timestamp;
+    }
+});
+
+{ /*Store these in bigchainDB*/}
+this.LogAssetFundingFailed.watch(function(e,r){
+  if(!e){
+    var eventInfo = this.getEventInfo(r);
+    var _assetID = r._assetID;
+    var _amountRaised = r._amountRaised;
+    var _timestamp = r._timestamp;
+  }
+});
+
+{ /*Store these in bigchainDB*/}
+this.LogAssetPayoutInstaller.watch(function(e,r){
+  if(!e){
+    var eventInfo = this.getEventInfo(r);
+    var _assetInstaller = r._assetInstaller;
+    var installerAmount = r.installerAmount;
+    var _timestamp = r._timestamp;
+  }
+});
+
+{ /*Store these in bigchainDB*/}
+this.LogRefund.watch(function(e,r){
+  if(!e){
+    var eventInfo = this.getEventInfo(r);
+    var _funder = r._funder;
+    var _amount = r._amount;
+    var _timestamp = r._timestamp;
+  }
+});
+
+{ /*Store these in bigchainDB*/}
+this.LogAssetEscrowChanged.watch(function(e,r){
+  if(!e){
+    var eventInfo = this.getEventInfo(r);
+    var _newEscrowLocation = r._newEscrowLocation;
+    var _timestamp = r._timestamp;
+  }
+});
+
+{ /*Store these in bigchainDB*/}
+this.LogAssetPayoutMyBitFoundation.watch(function(e,r){
+  if(!e){
+    var eventInfo = this.getEventInfo(r);
+    var _myBitFoundation = r._myBitFoundation;
+    var _myBitAmount = r._myBitAmount;
+    var _timestamp = r._timestamp;
+  }
+});
+
+{ /*Store these in bigchainDB*/}
+this.LogAssetPayoutLockedTokenHolders.watch(function(e,r){
+  if(!e){
+    var eventInfo = this.getEventInfo(r);
+    var _lockedTokenContract = r._lockedTokenContract;
+    var _lockedTokenAmount = r._lockedTokenAmount;
+    var _timestamp = r._timestamp;
+  }
+});
+
+{ /*Store these in bigchainDB*/}
+this.LogDestruction.watch(function(e,r){
+  if(!e){
+    var eventInfo = this.getEventInfo(r);
+    var _locationSent = r._locationSent;
+    var _amountSent = r._amountSent;
+    var _caller = r._caller;
+  }
+});
+
+
 import React, { Component } from 'react'
 import $ from 'jquery';
 import { keccak256 } from 'js-sha3';
@@ -8,7 +97,7 @@ import ABIInterfaceArray from '../util/abis/FundingHub.json'
 
 import '../App.css';
 
-const SMART_CONTRACT_ADDRESS = '0xfe58448b0a84c45e901463aa9fc4eb11c645dd70'
+const SMART_CONTRACT_ADDRESS = '0xbd2c938b9f6bfc1a66368d08cb44dc3eb2ae27be'
 const instancePromisifier = (instance) => promisifyAll(instance, { suffix: 'Async'})
 const constantsFromInterface = ABIInterfaceArray.filter( ABIinterface => ABIinterface.constant )
 
@@ -43,7 +132,22 @@ class FundingHub extends Component {
       const { web3, database, modifier } = this.props;
       const abi = await web3.eth.contract(ABIInterfaceArray);
       const instance = instancePromisifier(abi.at(SMART_CONTRACT_ADDRESS));
-      this.setState({ web3: web3, database: database, modifier: modifier, instance: instance})
+      const LogNewFunder = instance.LogNewFunder({},{fromBlock: 0, toBlock: 'latest'});
+      const LogAssetFunded = instance.LogAssetFunded({},{fromBlock: 0, toBlock: 'latest'});
+      const LogAssetFundingFailed = instance.LogAssetFundingFailed({},{fromBlock: 0, toBlock: 'latest'});
+      const LogAssetPayoutInstaller = instance.LogAssetPayoutInstaller({}, {fromBlock: 0, toBlock: 'latest'});
+      const LogRefund = instance.LogRefund({}, {fromBlock: 0, toBlock: 'latest'});
+      const LogFundingTimeChanged = instance.LogFundingTimeChanged({}, {fromBlock: 0, toBlock: 'latest'});
+      const LogAssetEscrowChanged = instance.LogAssetEscrowChanged({}, {fromBlock: 0, toBlock: 'latest'});
+      const LogAssetPayoutMyBitFoundation = instance.LogAssetPayoutMyBitFoundation({}, {fromBlock: 0, toBlock: 'latest'});
+      const LogAssetPayoutLockedTokenHolders = instance.LogAssetPayoutLockedTokenHolders({}, {fromBlock: 0, toBlock: 'latest'});
+      const LogDestruction = instance.LogDestruction({}, {fromBlock: 0, toBlock: 'latest'});
+      this.setState({ web3: web3, database: database, modifier: modifier, instance: instance, LogNewFunder: LogNewFunder,
+      LogAssetFunded: LogAssetFunded, LogAssetFundingFailed: LogAssetFundingFailed,
+      LogAssetPayoutInstaller: LogAssetPayoutInstaller, LogRefund: LogRefund,
+      LogFundingTimeChanged: LogFundingTimeChanged, LogAssetEscrowChanged: LogAssetEscrowChanged,
+      LogAssetPayoutMyBitFoundation: LogAssetPayoutMyBitFoundation, LogAssetPayoutLockedTokenHolders:
+      LogAssetPayoutLockedTokenHolders, LogDestruction:LogDestruction })
     }
 
     async callInterface(interfaceName) {
@@ -54,41 +158,24 @@ class FundingHub extends Component {
 
     async fund(_assetID, _value){
       const { instance, web3, modifier } = this.state;
+
       if(modifier.fundingLimitValue(_assetID) &&
          modifier.fundingLimitTime(_assetID) &&
          modifier.onlyApproved(2) &&
          modifier.atStage(_assetID, 1) &&
          modifier.notZero(_value)
       ){
-        instance.fund.estimateGas(
-          _assetID,
-          {from:web3.eth.coinbase, value:_value},
-          async function(e,gasEstimate){
-            if(!e){
-              const response = await instance.fundAsync(_assetID,{
-                  from: web3.eth.coinbase, gas:gasEstimate, value: _value});
-                }
-              })
-            }
-          };
-
+        const response = await instance.fundAsync(_assetID,{
+            from: web3.eth.coinbase, gas:20000, value: _value});}
+        }
 
     async payout(_assetID){
       const { instance, web3, modifier } = this.state;
       if(modifier.atStage(_assetID, 3) &&
          modifier.fundingPeriodOver(_assetID)
       ){
-        instance.payout.estimateGas(
-          _assetID,
-          {from:web3.eth.coinbase},
-          async function(e,gasEstimate){
-            if(!e){
-              const response = await instance.payoutAsync(_assetID,{
-                from: web3.eth.coinbase, gas:gasEstimate});
-              }
-          }
-        )
-      }
+        const response = await instance.payoutAsync(_assetID,{
+          from: web3.eth.coinbase, gas:20000});}
     }
 
     async initiateRefund(_assetID){
@@ -96,34 +183,16 @@ class FundingHub extends Component {
       if(modifier.fundingPeriodOver(_assetID) &&
          modifier.atStage(_assetID, 1)
       ){
-        instance.initiateRefund.estimateGas(
-          _assetID,
-          {from:web3.eth.coinbase},
-          async function(e,gasEstimate){
-            if(!e){
-              const response = await instance.initiateRefundAsync(_assetID,{
-                from: web3.eth.coinbase, gas:gasEstimate});
-              }
-          }
-        )
-      }
+        const response = await instance.initiateRefundAsync(_assetID,{
+          from: web3.eth.coinbase, gas:20000});}
     }
 
     async refund(_assetID){
       const { instance, web3, modifier } = this.state;
       if(modifier.atStage(_assetID, 1))
         {
-          instance.refund.estimateGas(
-            _assetID,
-            {from:web3.eth.coinbase},
-            async function(e,gasEstimate){
-              if(!e){
-                const response = await instance.refundAsync(_assetID,{
-                from: web3.eth.coinbase, gas:gasEstimate});
-              }
-            }
-          )
-        }
+        const response = await instance.refundAsync(_assetID,{
+          from: web3.eth.coinbase, gas:20000});}
       }
 
     async getEventInfo(_object){

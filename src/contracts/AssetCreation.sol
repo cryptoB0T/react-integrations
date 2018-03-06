@@ -1,5 +1,4 @@
-pragma solidity ^0.4.18;
-
+pragma solidity ^0.4.19;
 import './Database.sol';
 import './SafeMath.sol';
 
@@ -10,28 +9,21 @@ contract AssetCreation {
 
   Database public database;
   bool private rentrancy_lock = false;    // Prevents re-entrancy attack
+  uint public fundingTime = 3000;
 
   function AssetCreation(address _database)
   public  {
       database = Database(_database);
-  }
 
-  //  Must be called before TokenBurn is deployed to avoid someone creating an asset without fundingTime set
-  function init()
-  external
-  anyOwner {
-      database.setUint(keccak256("myBitFoundationPercentage"), 1);
-      database.setUint(keccak256("stakedTokenPercentage"), 2);
-      database.setUint(keccak256("installerPercentage"), 97);
-      database.setUint(keccak256("fundingTime"), 3000);
   }
 
   // This begins the funding period for an asset. If asset is success it will be added to the assets variable here in AssetCreation
   // @Param: The storage hash created from IPFS. WIll act as the ID for this asset if funding is a success
   // @Param: The amount of WEI required for asset to achieve successfull funding
   // @Param: The ID of the installer of this asset
-  // @Param: The type of asset being created. (ie. Sha3("ATM"))
-  function newAsset(bytes32 _storageHash, uint _amountToBeRaised, bytes32 _installerID, bytes32 _assetType)
+  // @Param: The type of asset being created. (ie. Sha3("BitcoinATM"))
+  // TODO: Allow manager percentage to be 0 ??
+  function newAsset(bytes32 _storageHash, uint _amountToBeRaised, uint _managerPercentage, bytes32 _installerID, bytes32 _assetType)
   external
   whenNotPaused
   nonReentrant
@@ -41,10 +33,12 @@ contract AssetCreation {
   notZero(_amountToBeRaised)
   returns (bool){
     require(database.uintStorage(keccak256("userAccess", msg.sender)) >= 2);
-    require(database.uintStorage(keccak256("fundingStage", _storageHash)) == 0);   // This ensures the asset isn't currently live or being funded
+    require(database.uintStorage(keccak256("fundingStage", _storageHash)) == 0);    // This ensures the asset isn't currently live or being funded
+    require(_managerPercentage < 100);
     database.setUint(keccak256("amountToBeRaised", _storageHash), _amountToBeRaised);
-    database.setUint(keccak256("fundingDeadline", _storageHash), block.timestamp.add(database.uintStorage(keccak256("fundingTime"))));
-    database.setUint(keccak256("fundingStartDate", _storageHash), block.timestamp);
+    database.setUint(keccak256("managerPercentage", _storageHash), _managerPercentage);
+    database.setAddress(keccak256("assetManager", _storageHash), msg.sender);
+    database.setUint(keccak256("fundingDeadline", _storageHash), block.timestamp.add(fundingTime));
     database.setUint(keccak256("fundingStage", _storageHash), 1);
     LogAssetInfo(_storageHash, _installerID, _assetType);
     LogAssetFundingStarted(msg.sender, _storageHash, _assetType);      // Use indexed event to keep track of pending assets
@@ -77,7 +71,7 @@ contract AssetCreation {
   anyOwner
   notZero(_newTimeGivenForFunding)
   returns (bool) {
-    database.setUint(keccak256("fundingTime"), _newTimeGivenForFunding);
+    fundingTime = _newTimeGivenForFunding;
     LogFundingTimeChanged(msg.sender, _newTimeGivenForFunding, block.timestamp);
     return true;
   }

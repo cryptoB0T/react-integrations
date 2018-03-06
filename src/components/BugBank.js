@@ -1,9 +1,10 @@
 import React, { Component } from 'react'
-import { promisifyAll } from 'bluebird'
-import ABIInterfaceArray from '../util/abis/BugEscrow.json'
-// TODO; update .json
+import $ from 'jquery';
 
-const SMART_CONTRACT_ADDRESS = '0x0'
+import { promisifyAll } from 'bluebird'
+import ABIInterfaceArray from '../util/abis/BugBank.json'
+
+const SMART_CONTRACT_ADDRESS = '0x07bd77fcdbf2000da66550916dd14142b3b41bda'
 const instancePromisifier = (instance) => promisifyAll(instance, { suffix: 'Async'})
 
 
@@ -34,17 +35,30 @@ class BugBank extends Component {
 
     async withdraw(){
       const { instance, web3 } = this.state;
-      const response = await instance.withdrawAsync(
-        {from: web3.eth.coinbase, gas:20000}
-      );
+      instance.withdraw.estimateGas(
+        {from:web3.eth.coinbase},
+        async function(e, gasEstimate){
+          if(!e){
+            const response = await instance.withdrawAsync(
+              {from: web3.eth.coinbase, gas:gasEstimate}
+            );
+          }
+        });
     }
 
-    async calculateOwed(){
+    async calculateOwed(_userAddress){
       const { instance, web3 } = this.state;
-      const response = await instance.calculateOwedAsync(
-        web3.eth.coinbase,
-        {from: web3.eth.coinbase, gas:20000}
-      );
+      instance.calculateOwed.estimateGas(
+        _userAddress,
+        {from:web3.eth.coinbase},
+        async function(e, gasEstimate){
+          if(!e){
+            const response = await instance.calculateOwedAsync(
+              _userAddress,
+              {from: web3.eth.coinbase, gas:gasEstimate}
+            );
+          }
+        });
     }
 
     render() {
@@ -52,7 +66,6 @@ class BugBank extends Component {
           <div>
             {/*  TODO;  */}
 
-            <br />
             {
               <button
               style={{ margin: 'auto', display: 'block' }}
@@ -69,11 +82,15 @@ class BugBank extends Component {
               <button
               style={{ margin: 'auto', display: 'block' }}
               key={'calculateOwed'}
-              onClick={() => this.calculateOwed()}
+              onClick={() => this.calculateOwed($('#bugBank-_userAddress').val())}
               >
               {'Calculate Owed'}
               </button>
             }
+            _userAddress:<input type="text" id="bugBank-_userAddress"></input>
+
+            <br /><br /><br /><br />
+
 
           </div>
         );

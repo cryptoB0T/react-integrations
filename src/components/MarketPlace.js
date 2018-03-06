@@ -8,7 +8,7 @@ import ABIInterfaceArray from '../util/abis/MarketPlace.json'
 
 import '../App.css';
 
-const SMART_CONTRACT_ADDRESS = '0x0'
+const SMART_CONTRACT_ADDRESS = '0xfda950b831bb0afa494ad272500eccb7a997f230'
 const instancePromisifier = (instance) => promisifyAll(instance, { suffix: 'Async'})
 const constantsFromInterface = ABIInterfaceArray.filter( ABIinterface => ABIinterface.constant )
 
@@ -35,7 +35,6 @@ class MarketPlace extends Component {
       this.deleteBuyOrder = this.deleteBuyOrder.bind(this);
       this.deleteSellOrder = this.deleteSellOrder.bind(this);
       this.buyOrderExists = this.buyOrderExists.bind(this);
-      this.sellOrderExists = this.sellOrderExists.bind(this);
       this.needsToWithdraw = this.needsToWithdraw.bind(this);
       this.getEventInfo = this.getEventInfo.bind(this);
     }
@@ -44,14 +43,8 @@ class MarketPlace extends Component {
       const { web3, database, modifier} = this.props;
       const abi = await web3.eth.contract(ABIInterfaceArray)
       const instance = instancePromisifier(abi.at(SMART_CONTRACT_ADDRESS))
-      const LogDestruction = instance.LogDestruction({},{fromBlock: 0, toBlock: 'latest'});
-      const LogSellOrderCreated = instance.LogSellOrderCreated({},{fromBlock: 0, toBlock: 'latest'});
-      const LogBuyOrderCreated = instance.LogBuyOrderCreated({},{fromBlock: 0, toBlock: 'latest'});
-      const LogBuyOrderCompleted = instance.LogBuyOrderCompleted({},{fromBlock: 0, toBlock: 'latest'});
-      const LogSellOrderCompleted = instance.LogSellOrderCompleted({},{fromBlock: 0, toBlock: 'latest'});
-      this.setState({ web3: web3, database: database, modifier: modifier, instance: instance, LogDestruction: LogDestruction,
-      LogSellOrderCompleted: LogSellOrderCompleted, LogBuyOrderCreated: LogBuyOrderCreated,
-      LogBuyOrderCompleted: LogBuyOrderCompleted, LogSellOrderCompleted: LogSellOrderCompleted})
+
+      this.setState({ web3: web3, database: database, modifier: modifier, instance: instance})
     }
 
     async callInterface(interfaceName, _param) {
@@ -60,41 +53,55 @@ class MarketPlace extends Component {
       alert(`The result from calling ${interfaceName} is ${response}`);
     }
 
-    // TODO; grab _sellOrderID
     async buyAsset(_sellOrderID){
       const { instance, web3, modifier } = this.state;
-      if(this.sellOrderExists(_sellOrderID)){
-        var sellOrder = instance.sellOrdersAsync(_sellOrderID);
-
-        if(modifier.onlyApproved(4) &&
-           this.needsToWithdraw(
-             sellOrder.assetContract,
-             sellOrder.initiator)){
-          var valueCost = sellOrder.amount * sellOrder.price;
-          const response = await instance.buyAsset(_sellOrderID,{
-            from: web3.eth.coinbase, gas:20000, value :web3.fromWei(valueCost)});
-        }
-      }
+      instance.sellOrders.call(_sellOrderID, async function(e,order){
+          var valueCost = Number(order[2]) * Number(order[3]); //TODO; wei return need to test
+          if(this.needsToWithdraw(
+            order[0], order[1]) &&
+            modifier.onlyApproved(4)){
+              instance.buyAsset.estimateGas(
+                _sellOrderID,
+                {from:web3.eth.coinbase, value:valueCost},
+                async function(e, gasEstimate){
+                  if(!e){
+                    console.log(gasEstimate);
+                    const response = await instance.buyAssetAsync(
+                    _sellOrderID,
+                    {from:web3.eth.coinbase,
+                    gas:gasEstimate,
+                    value: valueCost}
+                    )
+                  }
+            })
+          }
+      })
     }
+
 
     // TODO; grab assetID
     async sellAsset(_buyOrderID){
       const { instance, web3, modifier } = this.state;
-      if(this.buyOrderExists(_buyOrderID)){
-        var buyOrder = instance.buyOrdersAsync(_buyOrderID);
+      this.buyOrderExists.call(_buyOrderID, async function(e,order){
+        var valueCost = Number(order[2]) * Number(order[3]);
+        instance.sellAsset.estimateGas(
+            _buyOrderID,
+            {from:web3.eth.coinbase, value:valueCost},
+            async function(e, gasEstimate){
+              if(!e){
+                console.log(gasEstimate);
+                const reponse = await instance.sellAssetAsync(
+                  _buyOrderID,
+                  {from:web3.eth.coinbase,
+                  gas:gasEstimate,
+                  value:valueCost})
+                }
+              }
+            )
+          }
+        );
+      }
 
-        if(modifier.onlyApproved(4) &&
-           this.needsToWithdraw(
-             buyOrder.assetContract,
-             web3.eth.coinbase)
-           ){
-             var valueCost = buyOrder.amount * buyOrder.price;
-             const response = await instance.sellAsset(_buyOrderID,{
-               from: web3.eth.coinbase, gas:20000, value :web3.fromWei(valueCost)
-             });
-         }
-       }
-     }
 
     // TODO; grab assetID
     async createBuyOrder(_amount, _price, _assetID){
@@ -129,36 +136,55 @@ class MarketPlace extends Component {
     async deleteBuyOrder(_orderID){
       const { instance, web3, modifier } = this.state;
       if(modifier.onlyApproved(4)){
-        const response = await instance.deleteBuyOrder(_orderID,{
-          from: web3.eth.coinbase, gas:20000});
-        }
-      }
+        instance.deleteBuyOrder.estimateGas(
+            _orderID,
+            {from:web3.eth.coinbase},
+            async function(e, gasEstimate){
+              if(!e){
+                const response = await instance.deleteBuyOrderAsync(_orderID,{
+                  from: web3.eth.coinbase, gas:20000});
+                }
+              })
+            }
+          }
 
     async deleteSellOrder(_orderID){
       const { instance, web3, modifier } = this.state;
       if(modifier.onlyApproved(4)){
-        const response = await instance.deleteSellOrder(_orderID,{
-          from: web3.eth.coinbase, gas:20000});
+        instance.deleteSellOrder.estimateGas(
+            _orderID,
+            {from:web3.eth.coinbase},
+            async function(e, gasEstimate){
+              if(!e){
+                const response = await instance.deleteSellOrderAsync(_orderID,{
+                  from: web3.eth.coinbase, gas:gasEstimate});
+                }
+              }
+            )
+          }
         }
-      }
 
     async withdraw(){
       const { instance, web3, modifier } = this.state;
         if(modifier.onlyApproved(4)){
-        const response = await instance.withdraw({
-          from: web3.eth.coinbase, gas:20000});
-        }
-      }
+          instance.withdraw.estimateGas(
+              {from:web3.eth.coinbase},
+              async function(e, gasEstimate){
+                if(!e){
+                  const response = await instance.withdrawAsync({
+                    from: web3.eth.coinbase, gas:20000});
+                  }
+                }
+              )
+            }
+          }
 
     async buyOrderExists(_orderID) {
       const { instance } = this.state;
       return (instance.buyOrders[_orderID].amount !== 0);
       }
 
-    async sellOrderExists(_orderID) {
-      const { instance } = this.state;
-      return (instance.sellOrders[_orderID].amount !== 0);
-      }
+
 
     async needsToWithdraw(_assetID, _seller) {
       const { database } = this.state;
@@ -182,62 +208,8 @@ class MarketPlace extends Component {
     }
 
     render() {
-
-      { /*Store these in bigchainDB*/}
-      this.LogDestruction.watch(function(e,r){
-        if(!e){
-          var eventInfo = this.getEventInfo(r);
-          var _locationSent = r._locationSent;
-          var _amountSent = r._amountSent;
-          var _caller = r._caller;
-        }
-      });
-
-      { /*Store these in bigchainDB*/}
-      this.LogSellOrderCreated.watch(function(e,r){
-        if(!e){
-          var eventInfo = this.getEventInfo(r);
-          var _id = r._id;
-          var _assetAddress = r._assetAddress;
-          var _creator = r._creator;
-          }
-      });
-
-      { /*Store these in bigchainDB*/}
-      this.LogBuyOrderCreated.watch(function(e,r){
-        if(!e){
-          var eventInfo = this.getEventInfo(r);
-          var _id = r._id;
-          var _assetAddress = r._assetAddress;
-          var _creator = r._creator;
-        }
-      });
-
-      { /*Store these in bigchainDB*/}
-      this.LogBuyOrderCompleted.watch(function(e,r){
-        if(!e){
-          var eventInfo = this.getEventInfo(r);
-          var _id = r._id;
-          var _assetAddress = r._assetAddress;
-          var _purchaser = r._purchaser;
-        }
-      });
-
-      { /*Store these in bigchainDB*/}
-      this.LogSellOrderCompleted.watch(function(e,r){
-        if(!e){
-          var eventInfo = this.getEventInfo(r);
-          var _id = r._id;
-          var _assetAddress = r._assetAddress;
-          var _purchaser = r._purchaser;
-        }
-      });
-
-
-
         return (
           <div>
-            <br /><br />
             {
               constantsFromInterface.map( constant => (
               <button
@@ -255,13 +227,13 @@ class MarketPlace extends Component {
               style={{ margin: 'auto', display: 'block' }}
               key={'buyAsset'}
               onClick={() => this.buyAsset(
-                $('#buyAsset-_sellOrderID').val()
+                $('#marketPlace-_buyOrderID').val()
               )}
               >
               {'Buy Asset'}
               </button>
           }
-          _sellOrderID:<input type="text" id="buyAsset-_sellOrderID"></input>
+          _buyOrderID:<input type="text" id="marketPlace-_buyOrderID"></input>
 
 
           <br />
@@ -270,62 +242,93 @@ class MarketPlace extends Component {
             <button
             style={{ margin: 'auto', display: 'block' }}
             key={'sellAsset'}
-            onClick={() => this.sellAsset('_buyOrderID')}
+            onClick={() => this.sellAsset(
+                $('#marketPlace-_sellOrderID').val()
+            )}
             >
             {'Sell Asset'}
             </button>
           }
+          _sellOrderID:<input type="text" id="marketPlace-_sellOrderID"></input>
+
 
           {/*  TODO;  */}
-          <br />
+          <br /><br />
           {
             <button
             style={{ margin: 'auto', display: 'block' }}
             key={'createBuyOrder'}
-            onClick={() => this.createBuyOrder('_amount', '_price', '_assetID')}
+            onClick={() => this.createBuyOrder(
+              $('#marketPlace-buyorder_amount').val(),
+              $('#marketPlace-buyorder_price').val(),
+              $('#marketPlace-buyorder_assetID').val()
+            )}
             >
             {'Create Buy Order'}
             </button>
           }
+          _amount:<input type="text" id="marketPlace-buyorder_amount"></input>
+          _price:<input type="text" id="marketPlace-buyorder_price"></input>
+          _assetID:<input type="text" id="marketPlace-buyorder_assetID"></input>
+
+
+
 
           {/*  TODO;  */}
-          <br />
+          <br />  <br />
           {
             <button
             style={{ margin: 'auto', display: 'block' }}
             key={'createSellOrder'}
-            onClick={() => this.createSellOrder('_amount', '_price', '_assetID')}
+            onClick={() => this.createSellOrder(
+              $('#marketPlace-sellorder_amount').val(),
+              $('#marketPlace-sellorder_price').val(),
+              $('#marketPlace-sellorder_assetID').val()
+             )}
             >
             {'Create Sell Order'}
             </button>
           }
+          _amount:<input type="text" id="marketPlace-sellorder_amount"></input>
+          _price:<input type="text" id="marketPlace-sellorder_price"></input>
+          _assetID:<input type="text" id="marketPlace-sellorder_assetID"></input>
+
 
           {/*  TODO;  */}
-          <br />
+          <br />  <br />
           {
             <button
             style={{ margin: 'auto', display: 'block' }}
             key={'deleteBuyOrder'}
-            onClick={() => this.deleteBuyOrder('_name')}
+            onClick={() => this.deleteBuyOrder(
+              $('#marketPlace-_deletebuy_orderID').val()
+            )}
             >
             {'Delete Buy Order'}
             </button>
           }
+          _orderID:<input type="text" id="marketPlace-_deletebuy_orderID"></input>
+
+
 
           {/*  TODO;  */}
-          <br />
+          <br />  <br />
           {
             <button
             style={{ margin: 'auto', display: 'block' }}
             key={'deleteSellOrder'}
-            onClick={() => this.deleteSellOrder('_orderID')}
+            onClick={() => this.deleteSellOrder(
+              $('#marketPlace-deletesellorder_orderID').val()
+            )}
             >
             {'Delete Sell Order'}
             </button>
           }
+          _orderID:<input type="text" id="marketPlace-deletesellorder_orderID"></input>
+
 
           {/*  TODO;  */}
-          <br />
+          <br /> <br />
           {
             <button
             style={{ margin: 'auto', display: 'block' }}
@@ -335,6 +338,7 @@ class MarketPlace extends Component {
             {'Withdraw'}
             </button>
           }
+          <br /><br /><br /><br />
 
           </div>
         );

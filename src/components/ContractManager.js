@@ -6,7 +6,7 @@ import ABIInterfaceArray from '../util/abis/ContractManager.json'
 
 import '../App.css';
 
-const SMART_CONTRACT_ADDRESS = '0x0'
+const SMART_CONTRACT_ADDRESS = '0x983bec6f35d94e19302dd9a8a468185dde085eb7'
 const instancePromisifier = (instance) => promisifyAll(instance, { suffix: 'Async'})
 const constantsFromInterface = ABIInterfaceArray.filter( ABIinterface => ABIinterface.constant )
 const methodsFromInterface = ABIInterfaceArray.filter( ABIinterface => !ABIinterface.constant )
@@ -45,7 +45,6 @@ class ContractManager extends Component {
     render() {
         return (
           <div>
-            <br /><br />
             {
               constantsFromInterface.map( constant => (
               <button
@@ -65,10 +64,10 @@ class ContractManager extends Component {
               key={'setContractManager'}
               onClick={() => this.setContractManager('_contractManager')}
               >
-              {'Set Contract Manager'}
+              {'PRIVATE DO NOT PRESS'}
               </button>
           }
-
+          <br /><br /><br /><br />
           </div>
         );
       }

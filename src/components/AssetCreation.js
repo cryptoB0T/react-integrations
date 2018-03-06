@@ -7,7 +7,7 @@ import ABIInterfaceArray from '../util/abis/AssetCreation.json'
 
 import '../App.css';
 
-const SMART_CONTRACT_ADDRESS = '0x0'
+const SMART_CONTRACT_ADDRESS = '0x8e88e493162a6435adfc6809ab713a9cd81e9a1c'
 const instancePromisifier = (instance) => promisifyAll(instance, { suffix: 'Async'})
 const constantsFromInterface = ABIInterfaceArray.filter( ABIinterface => ABIinterface.constant )
 
@@ -41,6 +41,7 @@ class Asset extends Component {
       const LogAssetInfo = instance.LogAssetInfo({},{fromBlock: 0, toBlock: 'latest'});
       const LogAssetRemoved = instance.LogAssetRemoved({},{fromBlock: 0, toBlock: 'latest'});
       const LogFundingTimeChanged = instance.LogAssetRemoved({},{fromBlock: 0, toBlock: 'latest'});
+      web3.eth.defaultAccount = web3.eth.coinbase;
       this.setState({ web3: web3, database: database, instance: instance, LogAssetFundingStarted: LogAssetFundingStarted,
        LogAssetInfo: LogAssetInfo, LogAssetRemoved: LogAssetRemoved, LogFundingTimeChanged: LogFundingTimeChanged})
     }
@@ -53,31 +54,49 @@ class Asset extends Component {
 
     async newAsset(_storageHash, _amountToBeRaised, _installerID, _assetType){
       const { instance, web3} = this.state;
-      if(this.notZero(_amountToBeRaised)){
-        const response = await instance.newAssetAsync(
-          _storageHash, _amountToBeRaised, _installerID, _assetType,
-          {from: web3.eth.coinbase, gas:20000}
-        );
-      }
+      instance.newAsset.estimateGas(
+        _storageHash, _amountToBeRaised,
+        _installerID, _assetType,
+        {from:web3.eth.coinbase},
+        async function(e,gasEstimate){
+          if(!e){
+              const response = await instance.newAssetAsync(
+                _storageHash, _amountToBeRaised,
+                _installerID, _assetType,
+                {from:web3.eth.coinbase, gas:gasEstimate}
+              );
+          };
+        });
     }
 
     async removeAsset(_assetID, _functionSigner){
       const { instance, web3 } = this.state;
-      const response = await instance.removeAssetAsync(
+      instance.removeAsset.estimateGas(
         _assetID, _functionSigner,
-        {from: web3.eth.coinbase, gas:20000}
-      );
+        {from:web3.eth.coinbase},
+        async function(e,gasEstimate){
+          if(!e){
+            const response = await instance.removeAssetAsync(
+              _assetID, _functionSigner,
+              {from: web3.eth.coinbase, gas:gasEstimate});
+            };
+          });
     }
 
     async changeFundingTime(_newTimeGivenForFunding){
       const { instance, web3 } = this.state;
       if(this.notZero(_newTimeGivenForFunding)){
-        const response = await instance.changeFundingTimeAsync(
+        instance.changeFundingTime.estimateGas(
           _newTimeGivenForFunding,
-          {from: web3.eth.coinbase, gas:20000}
+          {from:web3.eth.coinbase},
+          async function(e,gasEstimate){
+          const response = await instance.changeFundingTimeAsync(
+            _newTimeGivenForFunding,
+            {from: web3.eth.coinbase, gas:gasEstimate}
         );
-      }
+      });
     }
+  }
 
     async changeFundingPercentages(_myBitFoundationPercentage,
       _stakedTokenPercentage, _installerPercentage, _functionSigner){
@@ -85,11 +104,18 @@ class Asset extends Component {
       if(this.notZero(_myBitFoundationPercentage) &&
         this.notZero(_stakedTokenPercentage) &&
         this.notZero(_installerPercentage)){
-        const response = await instance.changeFundingPercentagesAsync(
+
+        instance.changeFundingTime.estimateGas(
           _myBitFoundationPercentage,_stakedTokenPercentage,
           _installerPercentage, _functionSigner,
-          {from: web3.eth.coinbase, gas:20000}
-        );
+          {from:web3.eth.coinbase},
+           async function(e,gasEstimate){
+              const response = await instance.changeFundingPercentagesAsync(
+              _myBitFoundationPercentage,_stakedTokenPercentage,
+              _installerPercentage, _functionSigner,
+              {from: web3.eth.coinbase, gas:gasEstimate}
+            );
+          });
       }
     }
 
@@ -112,49 +138,9 @@ class Asset extends Component {
       render() {
 
 
-        { /*Store these in bigchainDB*/}
-        this.LogAssetFundingStarted.watch(function(e,r){
-          if(!e){
-            var eventInfo = this.getEventInfo(r);
-            var _creator = r._creator;
-            var _assetLocation = r._assetLocation;
-            var _assetType = r._assetType;
-          }
-        });
-
-        { /*Store these in bigchainDB*/}
-        this.LogAssetInfo.watch(function(e,r){
-          if(!e){
-            var eventInfo = this.getEventInfo(r);
-            var _storageHash = r._storageHash;
-            var _installerID = r._installerID;
-            var _assetType = r._assetType;
-            }
-        });
-
-        { /*Store these in bigchainDB*/}
-        this.LogAssetRemoved.watch(function(e,r){
-          if(!e){
-            var eventInfo = this.getEventInfo(r);
-            var _remover = r._remover;
-            var _id = r._id;
-            var _timestamp = r._timestamp;
-          }
-        });
-
-        { /*Store these in bigchainDB*/}
-        this.LogFundingTimeChanged.watch(function(e,r){
-          if(!e){
-            var eventInfo = this.getEventInfo(r);
-            var _sender = r._sender;
-            var _newTimeForFunding = r._newTimeForFunding;
-            var _blockTimestamp = r._blockTimestamp;
-          }
-        });
 
           return (
             <div>
-              <br /><br />
               {
                 constantsFromInterface.map( constant => (
                 <button
@@ -251,6 +237,7 @@ class Asset extends Component {
           _stakedTokenPercentage:<input type="text" id="changeFundingPercentages-_stakedTokenPercentage"></input>
           _installerPercentage:<input type="text" id="changeFundingPercentages-_installerPercentage"></input>
           _functionSigner:<input type="text" id="changeFundingPercentages-_functionSigner"></input>
+          <br /><br /><br /><br />
 
 
             </div>

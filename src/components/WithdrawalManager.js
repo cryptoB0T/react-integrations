@@ -1,4 +1,5 @@
 import React, { Component } from 'react'
+import $ from 'jquery';
 
 import { promisifyAll } from 'bluebird'
 
@@ -33,11 +34,7 @@ class UserAccess extends Component {
       const { web3, modifier } = this.props;
       const abi = await web3.eth.contract(ABIInterfaceArray)
       const instance = instancePromisifier(abi.at(SMART_CONTRACT_ADDRESS))
-      const LogWithdrawalAddressSet = instance.LogWithdrawalAddressSet({},{fromBlock: 0, toBlock: 'latest'});
-      const LogWithdrawalAddressRemoved = instance.LogWithdrawalAddressRemoved({},{fromBlock: 0, toBlock: 'latest'});
-      const LogWithdrawalAddressUpdated = instance.LogWithdrawalAddressUpdated({},{fromBlock: 0, toBlock: 'latest'});
-      this.setState({ web3: web3, instance: instance, modifier: modifier, LogWithdrawalAddressSet : LogWithdrawalAddressSet,
-       LogWithdrawalAddressRemoved : LogWithdrawalAddressRemoved, LogWithdrawalAddressUpdated : LogWithdrawalAddressUpdated })
+      this.setState({ web3: web3, instance: instance, modifier: modifier})
     }
 
     async callInterface(interfaceName, _param){
@@ -49,26 +46,49 @@ class UserAccess extends Component {
     async addWithdrawalAddress(_withdrawalAddress){
       const { instance, web3, modifier } = this.state;
       if(!modifier.withdrawalAddressSet()){
-        const response = await instance.addWithdrawalAddress(_withdrawalAddress,{
-          from: web3.eth.coinbase, gas:20000});
+        instance.addWithdrawalAddress.estimateGas(
+            _withdrawalAddress,
+            {from:web3.eth.coinbase},
+            async function(e, gasEstimate){
+              if(!e){
+              const response = await instance.addWithdrawalAddressAsync(_withdrawalAddress,{
+                from: web3.eth.coinbase, gas:gasEstimate});
+            }
+          }
+        )
       }
     }
 
     async removeWithdrawalAddress(){
       const { instance, web3, modifier } = this.state;
       if(modifier.withdrawalAddressSet()){
-        const response = await instance.removeWithdrawalAddress({
-          from: web3.eth.coinbase, gas:20000});
+        instance.removeWithdrawalAddress.estimateGas(
+            {from:web3.eth.coinbase},
+            async function(e, gasEstimate){
+              if(!e){
+              const response = await instance.removeWithdrawalAddressAsync({
+                from: web3.eth.coinbase, gas:gasEstimate});
+              }
+            }
+          )
         }
       }
 
     async updateWithdrawalAddress(_withdrawalAddress){
       const { instance, web3, modifier } = this.state;
       if(modifier.withdrawalAddressSet()){
-        const response = await instance.updateWithdrawalAddress(_withdrawalAddress,{
-          from: web3.eth.coinbase, gas:20000});
+        instance.updateWithdrawalAddress.estimateGas(
+            _withdrawalAddress,
+            {from:web3.eth.coinbase},
+            async function(e, gasEstimate){
+              if(!e){
+                const response = await instance.updateWithdrawalAddressAsync(_withdrawalAddress,{
+                  from: web3.eth.coinbase, gas:gasEstimate});
+                }
+              }
+            )
+          }
         }
-      }
 
     async getEventInfo(_object){
       var dictReturn = {
@@ -84,40 +104,8 @@ class UserAccess extends Component {
 
     render() {
 
-      { /*Store these in bigchainDB*/}
-      this.LogWithdrawalAddressSet.watch(function(e,r){
-        if(!e){
-          var eventInfo = this.getEventInfo(r);
-          var _user = r._user;
-          var _newAddress = r._newAddress;
-          var _timestamp = r._timestamp;
-        }
-      });
-
-      { /*Store these in bigchainDB*/}
-      this.LogWithdrawalAddressRemoved.watch(function(e,r){
-        if(!e){
-          var eventInfo = this.getEventInfo(r);
-          var _user = r._user;
-          var _removedAddress = r._removedAddress;
-          var _timestamp = r._timestamp;
-          }
-      });
-
-      { /*Store these in bigchainDB*/}
-      this.LogWithdrawalAddressUpdated.watch(function(e,r){
-        if(!e){
-          var eventInfo = this.getEventInfo(r);
-          var _user = r._user;
-          var _oldAddress = r._oldAddress;
-          var _updatedAddress = r._updatedAddress;
-          var _timestamp = r._timestamp;
-          }
-      });
-
         return (
           <div>
-            <br /><br />
             {
               constantsFromInterface.map( constant => (
               <button
@@ -135,11 +123,15 @@ class UserAccess extends Component {
               <button
               style={{ margin: 'auto', display: 'block' }}
               key={'addWithdrawalAddress'}
-              onClick={() => this.addWithdrawalAddress('_withdrawalAddress')}
+              onClick={() => this.addWithdrawalAddress(
+                  $('#withdrawalmanager-_withdrawalAddress').val()
+              )}
               >
               {'Add Withdrawal Address'}
               </button>
           }
+          _withdrawalAddress:<input type="text" id="withdrawalmanager-_withdrawalAddress"></input>
+
 
           {/*  TODO; */}
           <br />
@@ -153,17 +145,23 @@ class UserAccess extends Component {
             </button>
           }
 
+
           {/*  TODO;  */}
           <br />
           {
             <button
             style={{ margin: 'auto', display: 'block' }}
             key={'updateWithdrawalAddress'}
-            onClick={() => this.updateWithdrawalAddress('_withdrawalAddress')}
+            onClick={() => this.updateWithdrawalAddress(
+              $('#withdrawalmanager-update_withdrawaladdress').val()
+            )}
             >
             {'Update Withdrawal Address'}
             </button>
           }
+          _withdrawalAddress:<input type="text" id="withdrawalmanager-update_withdrawaladdress"></input>
+
+          <br /><br /><br /><br />
 
           </div>
         );

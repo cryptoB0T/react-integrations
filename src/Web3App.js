@@ -3,9 +3,8 @@ import { promisifyAll } from 'bluebird'
 
 import { getWeb3Async } from './util/web3'
 import Database from './util/Database'
-import Modifiers from './util/Modifiers'
+import Modifier from './util/Modifier'
 
-import ABIInterfaceArray from './util/abis/ABI.json'
 
 import Accounts from './components/Accounts'
 import Asset from './components/Asset'
@@ -30,34 +29,22 @@ class Web3App extends Component {
       web3: null,
       isWeb3synced: false,
     }
-    this.divVisibility = this.divVisibility.bind(this);
   }
 
   async componentDidMount() {
     const web3 = await getWeb3Async()
     if(web3.isConnected()) {
-      this.setState({ web3: web3, isWeb3synced: true})
+      const databaseInstance = new Database();
+      databaseInstance.load(web3)
+      const modifierInstance = new Modifier();
+      modifierInstance.load(databaseInstance, web3);
+      this.setState({ web3: web3, isWeb3synced: true, databaseInstance: databaseInstance, modifierInstance: modifierInstance})
     }
   }
 
-  divVisibility(){
-   var x = this.refs.assetDiv;
-      if (x.style.display === "none") {
-          x.style.display = "block";
-      } else {
-          x.style.display = "none";
-      }
-  }
 
   render() {
-    const { web3, isWeb3synced } = this.state;
-
-    const databaseInstance = new Database();
-    databaseInstance.load(web3)
-
-    const modifierInstance = new Modifiers();
-    modifierInstance.load(databaseInstance, web3);
-
+    const { web3, isWeb3synced, databaseInstance, modifierInstance} = this.state;
 
     return (
       <div className="App">
@@ -67,76 +54,85 @@ class Web3App extends Component {
         {
           isWeb3synced ?
           <div className="App-wrapper">
-            <button onClick={this.divVisibility.bind()}>AssetContract</button>
+
             <br />
-            <div ref ='accountsDiv' style={{display: 'none'}}>
+            <div ref ='accountsDiv' >
               <Accounts web3={web3} />
             </div>
-            <div ref ='assetDiv' style={{display: 'none'}}>
+            <div ref ='assetDiv' >
+              <h1>Asset Contract</h1>
               <Asset
                 web3={web3}
-                Database ={databaseInstance}
+                database ={databaseInstance}
                  />
             </div>
-            <div ref ='assetCreationDiv' style={{display: 'none'}}>
+            <div ref ='assetCreationDiv' >
+              <h1>Asset Creation Contract</h1>
               <AssetCreation
                 web3={web3}
-                Database ={databaseInstance}
+                database ={databaseInstance}
                  />
             </div>
-            <div ref ='bugBankDiv' style={{display: 'none'}}>
+            <div ref ='bugBankDiv' >
+              <h1>Bug Bank Contract</h1>
               <BugBank
                 web3={web3}
-                Database ={databaseInstance}
+                database ={databaseInstance}
                  />
             </div>
-            <div ref ='bugBountyDiv' style={{display: 'none'}}>
+            <div ref ='bugBountyDiv' >
+              <h1>Bug Bounty Contract</h1>
               <BugBounty web3={web3} />
             </div>
 
-            <div ref ='contractManagerDiv' style={{display: 'none'}}>
+            <div ref ='contractManagerDiv' >
+              <h1>Contract Manager Contract</h1>
               <ContractManager web3={web3} />
             </div>
-            <div ref ='fundingHubDiv' style={{display: 'none'}}>
+            <div ref ='fundingHubDiv' >
+              <h1>Funding Hub Contract</h1>
               <FundingHub
                 web3={web3}
                 database={databaseInstance}
                 modifier={modifierInstance}
                 />
             </div>
-            <div ref ='hashFunctionsDiv' style={{display: 'none'}}>
+            <div ref ='hashFunctionsDiv' >
+              <h1>Hash Functions Contract</h1>
               <HashFunctions web3={web3} />
             </div>
-            <div ref ='marketPlaceDiv' style={{display: 'none'}}>
+            <div ref ='marketPlaceDiv' >
+              <h1>Marketplace Contract</h1>
               <MarketPlace
                 web3={web3}
                 database={databaseInstance}
                 modifier={modifierInstance}
                 />
             </div>
-            <div ref ='stakingBankDiv' style={{display: 'none'}}>
-              <MarketPlace
+            <div ref ='stakingBankDiv' >
+              <h1>Staking Bank Contract</h1>
+              <StakingBank
                 web3={web3}
                 database={databaseInstance}
                 modifier={modifierInstance}
                 />
             </div>
-
-
-
-            <div ref ='tokenBurnDiv' style={{display: 'none'}}>
+            <div ref ='tokenBurnDiv' >
+              <h1>Token Burn Contract</h1>
               <TokenBurn
                  web3={web3}
                  modifier={modifierInstance}
                />
             </div>
-            <div ref ='userAccessDiv' style={{display: 'none'}}>
+            <div ref ='userAccessDiv' >
+              <h1>User Access Contract</h1>
               <UserAccess
                 web3={web3}
                 modifier={modifierInstance}
                 />
             </div>
-            <div ref ='withdrawalManagerDiv' style={{display: 'none'}}>
+            <div ref ='withdrawalManagerDiv' >
+              <h1>Withdrawal Manager Contract</h1>
               <WithdrawalManager
                  web3={web3}
                  modifier={modifierInstance}

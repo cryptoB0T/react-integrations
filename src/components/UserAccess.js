@@ -1,4 +1,5 @@
 import React, { Component } from 'react'
+import $ from 'jquery';
 
 import { promisifyAll } from 'bluebird'
 
@@ -6,7 +7,7 @@ import ABIInterfaceArray from '../util/abis/UserAccess.json'
 
 import '../App.css';
 
-const SMART_CONTRACT_ADDRESS = '0x0'
+const SMART_CONTRACT_ADDRESS = '0xebc9907d2d0547d80eec85bcfde0edce020400eb'
 const instancePromisifier = (instance) => promisifyAll(instance, { suffix: 'Async'})
 const constantsFromInterface = ABIInterfaceArray.filter( ABIinterface => ABIinterface.constant )
 
@@ -32,11 +33,7 @@ class UserAccess extends Component {
       const { web3, modifier } = this.props;
       const abi = await web3.eth.contract(ABIInterfaceArray)
       const instance = instancePromisifier(abi.at(SMART_CONTRACT_ADDRESS))
-      const LogBackupAddressUsed = instance.LogBackupAddressUsed({},{fromBlock: 0, toBlock: 'latest'});
-      const LogUserApproved = instance.LogUserApproved({},{fromBlock: 0, toBlock: 'latest'});
-      const LogUserRemoved = instance.LogUserRemoved({},{fromBlock: 0, toBlock: 'latest'});
-      this.setState({ web3: web3, instance: instance, modifier: modifier, LogBackupAddressUsed: LogBackupAddressUsed,
-      LogUserApproved: LogUserApproved, LogUserRemoved })
+      this.setState({ web3: web3, instance: instance, modifier: modifier})
     }
 
     async callInterface(interfaceName, _param){
@@ -48,18 +45,34 @@ class UserAccess extends Component {
     async setBackupAddress(_backupAddress){
       const { instance, web3, modifier} = this.state;
       if(modifier.accessLevel() > 0){
-        const response = await instance.setBackupAddress(_backupAddress,{
-          from: web3.eth.coinbase, gas:20000});
+        instance.setBackupAddress.estimateGas(
+            _backupAddress,
+            {from:web3.eth.coinbase},
+            async function(e, gasEstimate){
+              if(!e){
+                const response = await instance.setBackupAddressAsync(_backupAddress,{
+                  from: web3.eth.coinbase, gas:gasEstimate});
+              }
+            }
+          )
+        }
       }
-    }
 
     async switchToBackup(_oldAddress, _newBackup){
       const { instance, web3, modifier } = this.state;
       if(modifier.accessLevel() > 0){
-        const response = await instance.switchToBackup(_oldAddress, _newBackup,{
-          from: web3.eth.coinbase, gas:20000});
+        instance.switchToBackup.estimateGas(
+            _oldAddress, _newBackup,
+            {from:web3.eth.coinbase},
+            async function(e, gasEstimate){
+              if(!e){
+                const response = await instance.switchToBackupAsync(_oldAddress, _newBackup,{
+                  from: web3.eth.coinbase, gas:gasEstimate});
+              }
+            }
+          )
+        }
       }
-    }
 
     async getEventInfo(_object){
       var dictReturn = {
@@ -75,39 +88,8 @@ class UserAccess extends Component {
 
     render() {
 
-      { /*Store these in bigchainDB*/}
-      this.LogBackupAddressUsed.watch(function(e,r){
-        if(!e){
-          var eventInfo = this.getEventInfo(r);
-          var _oldAddress = r._oldAddress;
-          var _newAddress = r._newAddress;
-          var _timestamp = r._timestamp;
-        }
-      });
-
-      { /*Store these in bigchainDB*/}
-      this.LogUserApproved.watch(function(e,r){
-        if(!e){
-          var eventInfo = this.getEventInfo(r);
-          var _user = r._user;
-          var _approvalLevel = r._approvalLevel;
-          var _timestamp = r._timestamp;
-          }
-      });
-
-      { /*Store these in bigchainDB*/}
-      this.LogUserRemoved.watch(function(e,r){
-        if(!e){
-          var eventInfo = this.getEventInfo(r);
-          var _user = r._user;
-          var _timestamp = r._timestamp;
-          }
-      });
-
-
         return (
           <div>
-            <br /><br />
             {
               constantsFromInterface.map( constant => (
               <button
@@ -120,18 +102,39 @@ class UserAccess extends Component {
             ))}
 
             {/*  TODO; */}
-            <br />
+            <br />  <br />
             {
               <button
               style={{ margin: 'auto', display: 'block' }}
               key={'setBackupAddress'}
-              onClick={() => this.setBackupAddress('_oldAddress', '_newBackup')}
+              onClick={() => this.setBackupAddress(
+                $('#useraccess-_set-backupAddress').val()
+              )}
               >
               {'Set Backup Address'}
               </button>
           }
+          _backupAddress:<input type="text" id="useraccess-_set-backupAddress"></input>
 
 
+
+          <br />  <br />
+          {
+            <button
+            style={{ margin: 'auto', display: 'block' }}
+            key={'switchToBackup'}
+            onClick={() => this.switchToBackup(
+              $('#useraccess-switch-_oldAddress').val(),
+              $('#useraccess-switch-_newBackup').val()
+            )}
+            >
+            {'Switch To Backup Address'}
+            </button>
+        }
+        _oldAddress:<input type="text" id="useraccess-switch-_oldAddress"></input>
+        _newBackup:<input type="text" id="useraccess-switch-_newBackup"></input>
+
+          <br /><br /><br /><br />
           </div>
         );
       }

@@ -60,7 +60,6 @@ class BugBounty extends Component {
     render() {
         return (
           <div>
-            <br /><br />
             {
               constantsFromInterface.map( constant => (
               <button
@@ -93,7 +92,7 @@ class BugBounty extends Component {
             <br />
               {
                 <button
-                key={'submitBug'}
+                key={'voteForBug'}
                 onClick={() => this.voteForBug(
                   $('#voteForBug-_bugID').val(),
                   $('#voteForBug-select :selected').val()
@@ -107,6 +106,7 @@ class BugBounty extends Component {
                 <option value="true">true</option>
                 <option value="false">false</option>
               </select>
+              <br /><br /><br /><br />
 
           </div>
         );

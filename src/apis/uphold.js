@@ -1,4 +1,4 @@
-import axios from 'axios'
+import req from 'axios'
 
 const URLS  = {
   codeForAccess: 'https://api-sandbox.uphold.com/oauth2/token',
@@ -14,81 +14,81 @@ const POST_HEADER = {
 };
 
 // The Bearer code will be stored in bigchainDB
-const AUTH_HEADER = {
+var AUTH_HEADER = {
     'Authorization' : ''
 };
 
 export const upholdApi = {
-    async getUserDetails(_accessToken) {
+    async userDetails(_accessToken) {
       AUTH_HEADER = 'Bearer ' + _accessToken;
-        const userDetails = await axios.request({
+        const userDetails = await req.request({
             method: 'get',
             url: URLS.userDetails,
             headers: AUTH_HEADER
         })
         console.log('User Details', userDetails);
         return userDetails;
-    }
+    },
 
 
-    async getUserVerified(_accessToken) {
+    async userVerified(_accessToken) {
       AUTH_HEADER = 'Bearer ' + _accessToken;
-      const userVerified = await axois.request({
+      const userVerified = await req.request({
         method: 'get',
         url: URLS.userDetails,
         header: AUTH_HEADER
       })
       console.log('User Verified: ', userVerified);
       return userVerified;
-    }
+    },
 
 
-    async getAccessToken(_tempToken){
-      const acessToken = await axois.request({
+    async accessToken(_tempToken){
+      const acessToken = await req.request({
         method: 'get',
         url: URLS.codeForAccess,
         header: AUTH_HEADER,
       })
       console.log('Access Token: ', acessToken);
       return acessToken;
-    }
+    },
 
-    async currencyTicker(_accessToken){
-      const currencyResult = await axois.request({
+    async currencyTicker(){
+      const currencyResult = await req.request({
         method: 'get',
         url: URLS.currencyTicker,
         header: AUTH_HEADER
       })
       console.log('Currency result:', currencyResult);
       return currencyResult;
-    }
+    },
 
-    async getAccounts(_accessToken){
+    async accounts(_accessToken){
       AUTH_HEADER = 'Bearer ' + _accessToken;
-      const accounts = await axois.request({
+      const accounts = await req.request({
         method:'get',
         url: URLS.accounts,
         header: AUTH_HEADER
       })
       console.log('Account results', accounts);
       return accounts;
-    }
+    },
 
-    async getCards(_accessToken){
+    async cards(_accessToken){
       AUTH_HEADER = 'Bearer ' + _accessToken;
-      const cards = await axois.request({
+      const cards = await req.request({
         method: 'get',
         url: URLS.cards,
         header: AUTH_HEADER
       })
       console.log('Cards: ', cards);
       return cards;
-    }
+    },
 
-    async getSpecificCardEthAddress(_accessToken, _cardLabel){
+    async specificCardEthAddress(_accessToken, _cardLabel){
       AUTH_HEADER = 'Bearer ' + _accessToken;
       let ethAddr ='0x0';
-      const results = await axois.request({
+      const results = await req.request({
         method: 'get',
         url: URLS.cards,
         header: AUTH_HEADER
@@ -100,12 +100,12 @@ export const upholdApi = {
         }
       });
       return ethAddr;
-    }
+    },
 
-    async getCardID(_accessToken, _cardLabel){
+    async cardID(_accessToken, _cardLabel){
       AUTH_HEADER = 'Bearer ' + _accessToken;
       let cardId = '';
-      const results = await axois.request({
+      const results = await req.request({
         method: 'get',
         url: URLS.cards,
         header: AUTH_HEADER
@@ -117,21 +117,22 @@ export const upholdApi = {
         }
       })
       return cardId;
-    }
+    },
 
-    async getCardTransactions(_accessToken, _cardLabel){
+    async cardTransactions(_accessToken, _cardLabel){
       AUTH_HEADER = 'Bearer ' + _accessToken;
       let cardTransactions = '';
-      const results = await axois.request({
+      let cardId = '';
+      const results = await req.request({
         method: 'get',
         url: URLS.cards,
         header: AUTH_HEADER
       })
       var resultJson = JSON.parse(results);
-      resultJson.forEach(function(card){
+      resultJson.forEach(async function(card){
         if(card.label == _cardLabel){
           cardId = card.id;
-          const transactions = await axois.request({
+          const transactions = await req.request({
             method: 'get',
             url: URLS.cards,
             header: AUTH_HEADER
@@ -139,6 +140,6 @@ export const upholdApi = {
           return JSON.parse(transactions);
         }
       })
-    }
+    },
 
   }
