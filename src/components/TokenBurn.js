@@ -9,7 +9,7 @@ import ABIInterfaceArray from '../util/abis/TokenBurn.json'
 
 import '../App.css';
 
-const SMART_CONTRACT_ADDRESS = '0x299ad791cd98face8cda6a65c4897449779bb4f0'
+const SMART_CONTRACT_ADDRESS = '0xe91ea7502d4bcf6092ba8523348f5deba2f75cd9'
 const instancePromisifier = (instance) => promisifyAll(instance, { suffix: 'Async'})
 const constantsFromInterface = ABIInterfaceArray.filter( ABIinterface => ABIinterface.constant )
 
@@ -25,15 +25,16 @@ class TokenBurn extends Component {
         LogCallBackRecieved:null,
       }
       this.callInterface = this.callInterface.bind(this);
-      this.burnTokens = this.burnTokens.bind(this);
+      this.burnToken = this.burnToken.bind(this);
       this.getEventInfo = this.getEventInfo.bind(this);
     }
 
     async componentDidMount() {
-      const { web3, modifier } = this.props;
+      const { web3, modifier, database } = this.props;
       const abi = await web3.eth.contract(ABIInterfaceArray)
       const instance = instancePromisifier(abi.at(SMART_CONTRACT_ADDRESS))
-      this.setState({ web3: web3, instance: instance, modifier: modifier})
+      this.setState({ web3: web3, instance: instance, modifier: modifier,
+      database: database})
     }
 
     async callInterface(interfaceName) {
@@ -42,10 +43,12 @@ class TokenBurn extends Component {
       alert(`The result from calling ${interfaceName} is ${response}`);
     }
 
-    async burnTokens(_accessLevelDesired){
-      const { instance, web3, modifier } = this.state;
-      if(modifier.accessLevel() >=1 &&
-         modifier.accessLevel() < _accessLevelDesired &&
+    async burnToken(_accessLevelDesired){
+      const { instance, web3, modifier, database } = this.state;
+      var currentAccess = await database.uintStorage(keccak256("userAccess", web3.eth.coinbase));
+
+      if(currentAccess >=1 &&
+         currentAccess < _accessLevelDesired &&
          _accessLevelDesired < 5){
            instance.burnTokens.estimateGas(
                _accessLevelDesired,
@@ -93,7 +96,7 @@ class TokenBurn extends Component {
           {
             <button
             key={'burnTokens'}
-            onClick={() => this.burnTokens($('#tokenburn-_accessLevelDesired').val())}
+            onClick={() => this.burnToken($('#tokenburn-_accessLevelDesired').val())}
             >
             {'Burn Tokens'}
             </button>

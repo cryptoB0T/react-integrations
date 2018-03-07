@@ -4,6 +4,16 @@ import { promisifyAll } from 'bluebird'
 import { getWeb3Async } from './util/web3'
 import Database from './util/Database'
 import Modifier from './util/Modifier'
+import AssetCreationUtil from './util/components/AssetCreationUtil'
+import AssetUtil from './util/components/AssetUtil'
+import BugBankUtil from './util/components/BugBankUtil'
+import BugBountyUtil from './util/components/BugBountyUtil'
+import ContractManagerUtil from './util/components/ContractManagerUtil'
+import FundingHubUtil from './util/components/FundingHubUtil'
+import StakingBankUtil from './util/components/StakingBankUtil'
+import TokenBurnUtil from './util/components/TokenBurnUtil'
+import UserAccessUtil from './util/components/UserAccessUtil'
+import WithdrawalManagerUtil from './util/components/WithdrawalManagerUtil'
 
 
 import Accounts from './components/Accounts'
@@ -32,13 +42,42 @@ class Web3App extends Component {
   }
 
   async componentDidMount() {
-    const web3 = await getWeb3Async()
+    const web3 = await getWeb3Async();
     if(web3.isConnected()) {
       const databaseInstance = new Database();
-      databaseInstance.load(web3)
       const modifierInstance = new Modifier();
+      const assetCreationInstance = new AssetCreationUtil();
+      const assetInstance = new AssetUtil();
+      const bugBankInstance = new BugBankUtil();
+      const bugBountyInstance = new BugBountyUtil();
+      const contractManangerInstance = new ContractManagerUtil();
+      const fundingHubInstance = new FundingHubUtil();
+      const stakingBankInstance = new StakingBankUtil();
+      const tokenBurnInstance = new TokenBurnUtil();
+      const userAccessInstance = new UserAccessUtil();
+      const withdrawalManagerInstance = new WithdrawalManagerUtil();
+
+      databaseInstance.load(web3);
       modifierInstance.load(databaseInstance, web3);
-      this.setState({ web3: web3, isWeb3synced: true, databaseInstance: databaseInstance, modifierInstance: modifierInstance})
+      assetCreationInstance.load(web3, databaseInstance);
+      assetInstance.load(web3, databaseInstance);
+      bugBankInstance.load(web3, databaseInstance);
+      bugBountyInstance.load(web3, databaseInstance);
+      contractManangerInstance.load(web3);
+      fundingHubInstance.load(web3, modifierInstance);
+      stakingBankInstance.load(web3);
+      tokenBurnInstance.load(web3);
+      userAccessInstance.load(web3, modifierInstance);
+      withdrawalManagerInstance.load(web3, modifierInstance);
+
+      this.setState({ web3: web3, isWeb3synced: true, databaseInstance:
+        databaseInstance, modifierInstance: modifierInstance, assetCreationInstance:
+        assetCreationInstance, assetInstance: assetInstance, bugBankInstance:
+        bugBankInstance, bugBountyInstance: bugBountyInstance, contractManangerInstance:
+        contractManangerInstance, fundingHubInstance: fundingHubInstance,
+        stakingBankInstance: stakingBankInstance, tokenBurnInstance: tokenBurnInstance,
+        userAccessInstance: userAccessInstance, withdrawalManagerInstance:
+        withdrawalManagerInstance})
     }
   }
 
@@ -122,6 +161,7 @@ class Web3App extends Component {
               <TokenBurn
                  web3={web3}
                  modifier={modifierInstance}
+                 database={databaseInstance}
                />
             </div>
             <div ref ='userAccessDiv' >
@@ -129,6 +169,7 @@ class Web3App extends Component {
               <UserAccess
                 web3={web3}
                 modifier={modifierInstance}
+                database={databaseInstance}
                 />
             </div>
             <div ref ='withdrawalManagerDiv' >
@@ -136,6 +177,7 @@ class Web3App extends Component {
               <WithdrawalManager
                  web3={web3}
                  modifier={modifierInstance}
+                 database={databaseInstance}
                  />
             </div>
 

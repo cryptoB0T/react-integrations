@@ -7,7 +7,7 @@ import ABIInterfaceArray from '../util/abis/AssetCreation.json'
 
 import '../App.css';
 
-const SMART_CONTRACT_ADDRESS = '0x8e88e493162a6435adfc6809ab713a9cd81e9a1c'
+const SMART_CONTRACT_ADDRESS = '0x76215e0695506f7431e407dd4c80e13bab15ee36'
 const instancePromisifier = (instance) => promisifyAll(instance, { suffix: 'Async'})
 const constantsFromInterface = ABIInterfaceArray.filter( ABIinterface => ABIinterface.constant )
 
@@ -52,16 +52,18 @@ class Asset extends Component {
       alert(`The result from calling ${interfaceName} is ${response}`);
     }
 
-    async newAsset(_storageHash, _amountToBeRaised, _installerID, _assetType){
+    async newAsset(_storageHash, _amountToBeRaised, _managerPercentage, _installerID, _assetType){
       const { instance, web3} = this.state;
+      debugger;
       instance.newAsset.estimateGas(
-        _storageHash, _amountToBeRaised,
+        _storageHash, _amountToBeRaised, _managerPercentage,
         _installerID, _assetType,
         {from:web3.eth.coinbase},
         async function(e,gasEstimate){
+          console.log(e);
           if(!e){
               const response = await instance.newAssetAsync(
-                _storageHash, _amountToBeRaised,
+                _storageHash, _amountToBeRaised, _managerPercentage,
                 _installerID, _assetType,
                 {from:web3.eth.coinbase, gas:gasEstimate}
               );
@@ -166,6 +168,7 @@ class Asset extends Component {
                 onClick={() => this.newAsset(
                   $('#newAsset-_storageHash').val(),
                   $('#newAsset-_amountToBeRaised').val(),
+                  $('#newAsset-_managerPercentage').val(),
                   $('#newAsset-_installerID').val(),
                   $('#newAsset-_assetType').val()
                 )}
@@ -176,6 +179,7 @@ class Asset extends Component {
               <br />
             _storageHash:<input type="text" id="newAsset-_storageHash"></input>
             _amountToBeRaised:<input type="text" id="newAsset-_amountToBeRaised"></input>
+            _managerPercentage:<input type="text" id="newAsset-_managerPercentage"></input>
             _installerID:<input type="text" id="newAsset-_installerID"></input>
             _assetType:<input type="text" id="newAsset-_assetType"></input>
 

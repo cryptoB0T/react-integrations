@@ -1,5 +1,6 @@
 import React, { Component } from 'react'
 import $ from 'jquery';
+import { keccak256 } from 'js-sha3';
 
 import { promisifyAll } from 'bluebird'
 
@@ -30,10 +31,11 @@ class UserAccess extends Component {
     }
 
     async componentDidMount() {
-      const { web3, modifier } = this.props;
+      const { web3, modifier, database } = this.props;
       const abi = await web3.eth.contract(ABIInterfaceArray)
       const instance = instancePromisifier(abi.at(SMART_CONTRACT_ADDRESS))
-      this.setState({ web3: web3, instance: instance, modifier: modifier})
+      this.setState({ web3: web3, instance: instance, modifier: modifier,
+        database: database})
     }
 
     async callInterface(interfaceName, _param){
@@ -43,8 +45,10 @@ class UserAccess extends Component {
     }
 
     async setBackupAddress(_backupAddress){
-      const { instance, web3, modifier} = this.state;
-      if(modifier.accessLevel() > 0){
+      const { instance, web3, modifier, database} = this.state;
+      var accessLevel = await database.uintStorage(keccak256("userAccess", web3.eth.coinbase));
+
+      if(accessLevel >= 0){
         instance.setBackupAddress.estimateGas(
             _backupAddress,
             {from:web3.eth.coinbase},
@@ -59,8 +63,10 @@ class UserAccess extends Component {
       }
 
     async switchToBackup(_oldAddress, _newBackup){
-      const { instance, web3, modifier } = this.state;
-      if(modifier.accessLevel() > 0){
+      const { instance, web3, modifier, database } = this.state;
+      var accessLevel = await database.uintStorage(keccak256("userAccess", web3.eth.coinbase));
+
+      if(accessLevel >= 0){
         instance.switchToBackup.estimateGas(
             _oldAddress, _newBackup,
             {from:web3.eth.coinbase},

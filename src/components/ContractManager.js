@@ -19,7 +19,7 @@ class ContractManager extends Component {
         instance:null,
       }
       this.callConstant = this.callInterface.bind(this);
-      this.setContractManager = this.setContractManager.bind(this);
+      this.setContractManagerAddress = this.setContractManagerAddress.bind(this);
     }
 
     async componentDidMount() {
@@ -35,10 +35,18 @@ class ContractManager extends Component {
       alert(`The result from calling ${interfaceName} is ${response}`);
     }
 
-    async setContractManager(_contractManager){
+    async setContractManagerAddress(_contractManager){
       const { instance, web3 } = this.state;
-      const response = await instance.setContractManager(_contractManager,{
-        from: web3.eth.coinbase, gas:20000});
+      instance.voteForBug.setContractManager(
+        _contractManager,
+        {from:web3.eth.coinbase},
+        async function(e, gasEstimate){
+          if(!e){
+            const response = await instance.setContractManagerAsync(_contractManager,{
+              from: web3.eth.coinbase, gas:gasEstimate});
+          }
+        }
+      )
     }
 
 
@@ -62,7 +70,7 @@ class ContractManager extends Component {
               <button
               style={{ margin: 'auto', display: 'block' }}
               key={'setContractManager'}
-              onClick={() => this.setContractManager('_contractManager')}
+              onClick={() => this.setContractManagerAddress('_contractManager')}
               >
               {'PRIVATE DO NOT PRESS'}
               </button>

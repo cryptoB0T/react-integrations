@@ -8,7 +8,7 @@ import ABIInterfaceArray from '../util/abis/FundingHub.json'
 
 import '../App.css';
 
-const SMART_CONTRACT_ADDRESS = '0xfe58448b0a84c45e901463aa9fc4eb11c645dd70'
+const SMART_CONTRACT_ADDRESS = '0x729f330a684a10fcb5aac45be1f81e2ec1f4ebb9'
 const instancePromisifier = (instance) => promisifyAll(instance, { suffix: 'Async'})
 const constantsFromInterface = ABIInterfaceArray.filter( ABIinterface => ABIinterface.constant )
 
@@ -93,6 +93,8 @@ class FundingHub extends Component {
 
     async initiateRefund(_assetID){
       const { instance, web3, modifier} = this.state;
+      const response = await instance.initiateRefundAsync(_assetID,{
+        from: web3.eth.coinbase, gas:30000});
       if(modifier.fundingPeriodOver(_assetID) &&
          modifier.atStage(_assetID, 1)
       ){

@@ -3,7 +3,7 @@ import { promisifyAll } from 'bluebird'
 import ABIInterfaceArray from '../util/abis/Database.json'
 
 
-const SMART_CONTRACT_ADDRESS = '0xc6474b935ba582fd2a88b87b3d034dc1535a127a'
+const SMART_CONTRACT_ADDRESS = '0xdfaa881b0432304e22dbdf1c9be6c80bec0660c7'
 const instancePromisifier = (instance) => promisifyAll(instance, { suffix: 'Async'})
 
 

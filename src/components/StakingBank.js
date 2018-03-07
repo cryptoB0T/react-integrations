@@ -4,12 +4,12 @@ import { keccak256 } from 'js-sha3';
 
 import { promisifyAll } from 'bluebird'
 
-import ABIInterfaceArray from '../util/abis/BugBounty.json'
+import ABIInterfaceArray from '../util/abis/StakingBank.json'
 // TODO; update .json
 
 import '../App.css';
 
-const SMART_CONTRACT_ADDRESS = '0x7d9877408a4602afdb6aeb5dd307da7eb985940e'
+const SMART_CONTRACT_ADDRESS = '0x64b17870283bedce675f69aeba03774458a62adf'
 const instancePromisifier = (instance) => promisifyAll(instance, { suffix: 'Async'})
 const constantsFromInterface = ABIInterfaceArray.filter( ABIinterface => ABIinterface.constant )
 
@@ -27,8 +27,9 @@ class StakingBank extends Component {
       }
       this.callConstant = this.callInterface.bind(this);
       this.requestWithdrawal = this.requestWithdrawal.bind(this);
-      this.withdraw = this.withdraw.bind(this);
+      this.withdrawal = this.withdrawal.bind(this);
       this.getEventInfo = this.getEventInfo.bind(this);
+      this.bugWithdrawal = this.bugWithdrawal.bind(this);
     }
 
     async componentDidMount() {
@@ -46,7 +47,7 @@ class StakingBank extends Component {
 
     // TODO; stake_ID bigchainDB
     async requestWithdrawal(_stakeID){
-      const { instance, web3} = this.state;
+      const { instance, web3 } = this.state;
       instance.requestWithdraw.estimateGas(
           _stakeID,
           {from:web3.eth.coinbase},
@@ -59,7 +60,7 @@ class StakingBank extends Component {
         )
       }
 
-    async withdraw(_stakeID){
+    async withdrawal(_stakeID){
       const { instance, web3 } = this.state;
       instance.withdraw.estimateGas(
           _stakeID,
@@ -72,6 +73,21 @@ class StakingBank extends Component {
             }
           )
         }
+
+    async bugWithdrawal(_amount, _userAddress){
+      const { instance, web3 } = this.state;
+      instance.bugWithdraw.estimateGas(
+          _amount, _userAddress,
+          {from:web3.eth.coinbase},
+          async function(e, gasEstimate){
+            if(!e){
+              const response = await instance.bugWithdrawAsync(_amount, _userAddress,{
+                  from: web3.eth.coinbase, gas:gasEstimate});
+            }
+          }
+        )
+      }
+
 
     async getEventInfo(_object){
       var dictReturn = {
@@ -126,7 +142,7 @@ class StakingBank extends Component {
             <button
             style={{ margin: 'auto', display: 'block' }}
             key={'payout'}
-            onClick={() => this.withdraw(
+            onClick={() => this.withdrawal(
               $('#payout-_assetID').val()
             )}
             >
@@ -144,15 +160,19 @@ class StakingBank extends Component {
           {
             <button
             style={{ margin: 'auto', display: 'block' }}
-            key={'receiveReward'}
-            onClick={() => this.receiveReward(
-              $('#StakingBankreceiveReward-value').val()
+            key={'bugWithdraw'}
+            onClick={() => this.bugWithdrawal(
+              $('#stakingBankBugWithdraw-_amount').val(),
+              $('#stakingBankBugWithdraw-_userAddress').val()
+
             )}
             >
-            {'receiveReward'}
+            {'Bug Withdraw'}
             </button>
           }
-          _value:<input type="text" id="StakingBankreceiveReward-value"></input>
+          _amount:<input type="text" id="stakingBankBugWithdraw-_amount"></input>
+          _userAddress:<input type="text" id="stakingBankBugWithdraw-_userAddress"></input>
+
           <br /><br /><br /><br />
           </div>
         );

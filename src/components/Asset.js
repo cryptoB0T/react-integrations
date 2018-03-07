@@ -8,7 +8,7 @@ import ABIInterfaceArray from '../util/abis/Asset.json'
 
 import '../App.css';
 
-const SMART_CONTRACT_ADDRESS = '0x4cbd4ac2d9c6f8103378f669af63eeffdca435f9'
+const SMART_CONTRACT_ADDRESS = '0xfc5b3553c1f3dc3e66f339c3f423cdc691707666'
 const instancePromisifier = (instance) => promisifyAll(instance, { suffix: 'Async'})
 const constantsFromInterface = ABIInterfaceArray.filter( ABIinterface => ABIinterface.constant )
 const methodsFromInterface = ABIInterfaceArray.filter( ABIinterface => !ABIinterface.constant )
@@ -32,6 +32,7 @@ class Asset extends Component {
       const { web3, database } = this.props;
       const abi = await web3.eth.contract(ABIInterfaceArray);
       const instance = instancePromisifier(abi.at(SMART_CONTRACT_ADDRESS));
+      web3.eth.defaultAccount = web3.eth.coinbase;
       this.setState({ web3: web3, database: database, instance: instance });
     }
 
@@ -53,7 +54,6 @@ class Asset extends Component {
            _assetID, _otherWithdrawal,
            {from:web3.eth.coinbase},
            async function(e, gasEstimate){
-             alert(e);
              if(!e){
                const response = await instance.withdrawAsync(
                  _assetID, _otherWithdrawal,

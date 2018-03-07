@@ -4,7 +4,7 @@ import $ from 'jquery';
 import { promisifyAll } from 'bluebird'
 import ABIInterfaceArray from '../util/abis/BugBank.json'
 
-const SMART_CONTRACT_ADDRESS = '0x07bd77fcdbf2000da66550916dd14142b3b41bda'
+const SMART_CONTRACT_ADDRESS = '0xdf1d5943eb71a694f1db8a8fb2896d2fad8f30ac'
 const instancePromisifier = (instance) => promisifyAll(instance, { suffix: 'Async'})
 
 
@@ -16,8 +16,8 @@ class BugBank extends Component {
         instance:null,
       }
       this.callConstant = this.callInterface.bind(this);
-      this.withdraw = this.withdraw.bind(this);
-      this.calculateOwed = this.calculateOwed.bind(this);
+      this.withdrawal = this.withdrawal.bind(this);
+      this.calculateOwedUser = this.calculateOwedUser.bind(this);
     }
 
     async componentDidMount() {
@@ -33,7 +33,7 @@ class BugBank extends Component {
       alert(`The result from calling ${interfaceName} is ${response}`);
     }
 
-    async withdraw(){
+    async withdrawal(){
       const { instance, web3 } = this.state;
       instance.withdraw.estimateGas(
         {from:web3.eth.coinbase},
@@ -46,19 +46,23 @@ class BugBank extends Component {
         });
     }
 
-    async calculateOwed(_userAddress){
+    async calculateOwedUser(_userAddress){
+      /*
+    console.log('Testing', _userAddress);
       const { instance, web3 } = this.state;
       instance.calculateOwed.estimateGas(
         _userAddress,
         {from:web3.eth.coinbase},
         async function(e, gasEstimate){
+          console.log(e);
           if(!e){
+            alert(gasEstimate);
             const response = await instance.calculateOwedAsync(
               _userAddress,
               {from: web3.eth.coinbase, gas:gasEstimate}
             );
           }
-        });
+        });*/
     }
 
     render() {
@@ -70,7 +74,7 @@ class BugBank extends Component {
               <button
               style={{ margin: 'auto', display: 'block' }}
               key={'withdraw'}
-              onClick={() => this.withdraw()}
+              onClick={() => this.withdrawal()}
               >
               {'withdraw'}
               </button>
@@ -82,7 +86,7 @@ class BugBank extends Component {
               <button
               style={{ margin: 'auto', display: 'block' }}
               key={'calculateOwed'}
-              onClick={() => this.calculateOwed($('#bugBank-_userAddress').val())}
+              onClick={() => this.calculateOwedUser($('#bugBank-_userAddress').val())}
               >
               {'Calculate Owed'}
               </button>

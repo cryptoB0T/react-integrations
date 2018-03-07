@@ -38,21 +38,36 @@ class BugBounty extends Component {
     async submitBug(_severity){
       const { instance, web3 } = this.state;
       if(_severity > 0 && _severity < 4){
-        const response = await instance.submitBugAsync(
+        instance.submitBug.estimateGas(
           _severity,
-          {from: web3.eth.coinbase, gas:20000}
-        );
+          {from:web3.eth.coinbase},
+          async function(e, gasEstimate){
+            if(!e){
+              const response = await instance.submitBugAsync(
+                _severity,
+                {from: web3.eth.coinbase, gas:20000}
+              );
+            }
+          }
+        )
       }
     }
 
     /* TODO; grab bug ID*/
     async voteForBug(_bugID, _upvote){
       const { instance, web3 } = this.state;
-
-      const response = await instance.voteForBug(
+      instance.voteForBug.estimateGas(
         _bugID, _upvote,
-        {from: web3.eth.coinbase, gas:20000}
-      );
+        {from:this.web3.eth.coinbase},
+        async function(e, gasEstimate){
+          if(!e){
+            const response = await instance.voteForBugAsync(
+              _bugID, _upvote,
+              {from: web3.eth.coinbase, gas:20000}
+            );
+          }
+        }
+      )
     }
 
 
