@@ -30,13 +30,21 @@ class StakingBank extends Component {
       this.withdrawal = this.withdrawal.bind(this);
       this.getEventInfo = this.getEventInfo.bind(this);
       this.bugWithdrawal = this.bugWithdrawal.bind(this);
+      this.setEventListeners = this.setEventListeners.bind(this);
     }
 
     async componentDidMount() {
       const { web3, database, modifier } = this.props;
       const abi = await web3.eth.contract(ABIInterfaceArray)
       const instance = instancePromisifier(abi.at(SMART_CONTRACT_ADDRESS))
-      this.setState({ web3: web3, database: database, modifier: modifier, instance: instance})
+      const LogDestruction = instance.LogNewFunder({},{fromBlock: 0, toBlock: 'latest'});
+      const LogFeeReceived = instance.LogAssetFunded({},{fromBlock: 0, toBlock: 'latest'});
+      const LogTokensStaked = instance.LogAssetFundingFailed({},{fromBlock: 0, toBlock: 'latest'});
+      const LogTokenWithdraw = instance.LogAssetPayoutInstaller({}, {fromBlock: 0, toBlock: 'latest'});
+      this.setState({ web3: web3, database: database, modifier: modifier, database: database, instance: instance,
+         LogDestruction: LogDestruction, LogFeeReceived: LogFeeReceived,
+         LogTokensStaked: LogTokensStaked, LogTokenWithdraw: LogTokenWithdraw});
+      this.setEventListeners();
     }
 
     async callInterface(interfaceName) {
@@ -44,6 +52,16 @@ class StakingBank extends Component {
       const response = await instance[`${interfaceName}Async`]();
       alert(`The result from calling ${interfaceName} is ${response}`);
     }
+
+    async setEventListeners(){
+      const { instance, web3, LogDestruction, LogFeeReceived,
+      LogTokensStaked, LogTokenWithdraw} = this.state;
+      LogDestruction.watch(function(e,r){if(!e){alert('LogDestruction; ' + r);}});
+      LogFeeReceived.watch(function(e,r){if(!e){alert('LogFeeReceived; ' + r);}});
+      LogTokensStaked.watch(function(e,r){if(!e){alert('LogTokensStaked; ' + r);}});
+      LogTokenWithdraw.watch(function(e,r){if(!e){alert('LogTokenWithdraw; ' + r);}});
+    }
+
 
     // TODO; stake_ID bigchainDB
     async requestWithdrawal(_stakeID){

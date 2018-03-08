@@ -29,13 +29,19 @@ class UserAccess extends Component {
       this.removeWithdrawalAddress = this.removeWithdrawalAddress.bind(this);
       this.updateWithdrawalAddress = this.updateWithdrawalAddress.bind(this);
       this.getEventInfo = this.getEventInfo.bind(this);
+      this.setEventListeners = this.setEventListeners.bind(this);
     }
 
     async componentDidMount() {
       const { web3, modifier, database } = this.props;
       const abi = await web3.eth.contract(ABIInterfaceArray)
       const instance = instancePromisifier(abi.at(SMART_CONTRACT_ADDRESS))
-      this.setState({ web3: web3, instance: instance, modifier: modifier, database: database})
+      const LogWithdrawalAddressSet = instance.LogWithdrawalAddressSet({},{fromBlock: 0, toBlock: 'latest'});
+      const LogWithdrawalAddressRemoved = instance.LogWithdrawalAddressRemoved({},{fromBlock: 0, toBlock: 'latest'});
+      const LogWithdrawalAddressUpdated = instance.LogWithdrawalAddressUpdated({},{fromBlock: 0, toBlock: 'latest'});
+      this.setState({ web3: web3, instance: instance, modifier: modifier, database: database, LogWithdrawalAddressSet : LogWithdrawalAddressSet,
+       LogWithdrawalAddressRemoved : LogWithdrawalAddressRemoved, LogWithdrawalAddressUpdated : LogWithdrawalAddressUpdated });
+      this.setEventListeners();
     }
 
     async callInterface(interfaceName, _param){
@@ -43,6 +49,15 @@ class UserAccess extends Component {
       const response = await instance[`${interfaceName}Async`](_param);
       alert(`The result from calling ${interfaceName} is ${response}`);
     }
+
+    async setEventListeners(){
+      const { instance, web3, LogWithdrawalAddressSet, LogWithdrawalAddressRemoved,
+      LogWithdrawalAddressUpdated} = this.state;
+      LogWithdrawalAddressSet.watch(function(e,r){if(!e){alert('LogWithdrawalAddressSet; ' + r);}});
+      LogWithdrawalAddressRemoved.watch(function(e,r){if(!e){alert('LogWithdrawalAddressRemoved; ' + r);}});
+      LogWithdrawalAddressUpdated.watch(function(e,r){if(!e){alert('LogWithdrawalAddressUpdated; ' + r);}});
+    }
+
 
     async addWithdrawalAddress(_withdrawalAddress){
       const { instance, web3, modifier, database } = this.state;

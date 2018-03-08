@@ -27,14 +27,18 @@ class TokenBurn extends Component {
       this.callInterface = this.callInterface.bind(this);
       this.burnToken = this.burnToken.bind(this);
       this.getEventInfo = this.getEventInfo.bind(this);
+      this.setEventListeners = this.setEventListeners.bind(this);
     }
 
     async componentDidMount() {
       const { web3, modifier, database } = this.props;
       const abi = await web3.eth.contract(ABIInterfaceArray)
       const instance = instancePromisifier(abi.at(SMART_CONTRACT_ADDRESS))
-      this.setState({ web3: web3, instance: instance, modifier: modifier,
-      database: database})
+      const LogMyBitBurnt = instance.LogMyBitBurnt({},{fromBlock: 0, toBlock: 'latest'});
+      const LogCallBackRecieved = instance.LogCallBackRecieved({},{fromBlock: 0, toBlock: 'latest'});
+      this.setState({ web3: web3, instance: instance, modifier: modifier, database: database,LogMyBitBurnt: LogMyBitBurnt,
+       LogCallBackRecieved: LogCallBackRecieved});
+      this.setEventListeners();
     }
 
     async callInterface(interfaceName) {
@@ -42,6 +46,13 @@ class TokenBurn extends Component {
       const response = await instance[`${interfaceName}Async`]();
       alert(`The result from calling ${interfaceName} is ${response}`);
     }
+
+    async setEventListeners(){
+      const { instance, web3, LogMyBitBurnt, LogCallBackRecieved} = this.state;
+      LogMyBitBurnt.watch(function(e,r){if(!e){alert('LogMyBitBurnt; ' + r);}});
+      LogCallBackRecieved.watch(function(e,r){if(!e){alert('LogCallBackRecieved; ' + r);}});
+    }
+
 
     async burnToken(_accessLevelDesired){
       const { instance, web3, modifier, database } = this.state;

@@ -8,7 +8,7 @@ import ABIInterfaceArray from '../util/abis/Asset.json'
 
 import '../App.css';
 
-const SMART_CONTRACT_ADDRESS = '0xfc5b3553c1f3dc3e66f339c3f423cdc691707666'
+const SMART_CONTRACT_ADDRESS = '0xff69c0648eeba3401026c9927e84f5550db85889'
 const instancePromisifier = (instance) => promisifyAll(instance, { suffix: 'Async'})
 const constantsFromInterface = ABIInterfaceArray.filter( ABIinterface => ABIinterface.constant )
 const methodsFromInterface = ABIInterfaceArray.filter( ABIinterface => !ABIinterface.constant )
@@ -25,7 +25,7 @@ class Asset extends Component {
       this.callConstant = this.callInterface.bind(this);
       this.withdrawal = this.withdrawal.bind(this);
       this.receiveIncome = this.receiveIncome.bind(this);
-      this.getEventInfo = this.getEventInfo.bind(this);
+      this.setEventListeners = this.setEventListeners.bind(this);
     }
 
     async componentDidMount() {
@@ -33,7 +33,17 @@ class Asset extends Component {
       const abi = await web3.eth.contract(ABIInterfaceArray);
       const instance = instancePromisifier(abi.at(SMART_CONTRACT_ADDRESS));
       web3.eth.defaultAccount = web3.eth.coinbase;
-      this.setState({ web3: web3, database: database, instance: instance });
+
+      const LogSharesTraded = instance.LogSharesTraded({},{fromBlock: 0, toBlock: 'latest'});
+      const LogDestruction = instance.LogDestruction({},{fromBlock: 0, toBlock: 'latest'});
+      const LogIncomeReceived = instance.LogIncomeReceived({},{fromBlock: 0, toBlock: 'latest'});
+      const LogInvestmentPaid = instance.LogInvestmentPaid({},{fromBlock: 0, toBlock: 'latest'});
+      const LogInvestmentPaidToWithdrawalAddress = instance.LogInvestmentPaidToWithdrawalAddress({},{fromBlock: 0, toBlock: 'latest'});
+      const LogAssetNote = instance.LogAssetNote({},{fromBlock: 0, toBlock: 'latest'});
+      this.setState({ web3: web3, database: database, instance: instance, LogSharesTraded: LogSharesTraded,
+      LogDestruction: LogDestruction, LogIncomeReceived: LogIncomeReceived, LogInvestmentPaid: LogInvestmentPaid,
+      LogInvestmentPaidToWithdrawalAddress: LogInvestmentPaidToWithdrawalAddress, LogAssetNote: LogAssetNote });
+      this.setEventListeners();
     }
 
 
@@ -43,6 +53,18 @@ class Asset extends Component {
       alert(`The result from calling ${interfaceName} is ${response}`);
     }
 
+    async setEventListeners(){
+      const { instance, web3, LogSharesTraded,
+      LogDestruction, LogIncomeReceived, LogInvestmentPaid,
+      LogInvestmentPaidToWithdrawalAddress, LogAssetNote } = this.state;
+      LogSharesTraded.watch(function(e,r){if(!e){alert('LogSharesTraded; ' + r);}});
+      LogDestruction.watch(function(e,r){if(!e){alert('LogDestruction; ' + r);}});
+      LogIncomeReceived.watch(function(e,r){if(!e){alert('LogIncomeReceived; ' + r);}});
+      LogInvestmentPaid.watch(function(e,r){if(!e){alert('LogInvestmentPaid; ' + r);}});
+      LogInvestmentPaidToWithdrawalAddress.watch(function(e,r){if(!e){alert('LogInvestmentPaidToWithdrawalAddress; ' + r);}});
+      LogAssetNote.watch(function(e,r){if(!e){alert('LogAssetNote; ' + r);}});
+    }
+
 
     async withdrawal(_assetID, _otherWithdrawal){
       const { instance, web3, database } = this.state;
@@ -50,10 +72,12 @@ class Asset extends Component {
       if(addrSet !== 'ff' &&
          addrSet !== 'dd'
        ){
+         alert(addrSet);
          instance.withdraw.estimateGas(
            _assetID, _otherWithdrawal,
            {from:web3.eth.coinbase},
            async function(e, gasEstimate){
+             console.log(e);
              if(!e){
                const response = await instance.withdrawAsync(
                  _assetID, _otherWithdrawal,

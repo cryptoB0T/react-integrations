@@ -7,7 +7,7 @@ import ABIInterfaceArray from '../util/abis/AssetCreation.json'
 
 import '../App.css';
 
-const SMART_CONTRACT_ADDRESS = '0x76215e0695506f7431e407dd4c80e13bab15ee36'
+const SMART_CONTRACT_ADDRESS = '0x4e5e6b73ffcb08022861dc62f96ba966e72080d7'
 const instancePromisifier = (instance) => promisifyAll(instance, { suffix: 'Async'})
 const constantsFromInterface = ABIInterfaceArray.filter( ABIinterface => ABIinterface.constant )
 
@@ -18,11 +18,7 @@ class Asset extends Component {
       this.state = {
         web3:null,
         database: null,
-        instance:null,
-        LogAssetFundingStarted:null,
-        LogAssetInfo:null,
-        LogAssetRemoved:null,
-        LogFundingTimeChanged:null,
+        instance:null
       }
       this.callConstant = this.callInterface.bind(this);
       this.newAsset = this.newAsset.bind(this);
@@ -31,6 +27,7 @@ class Asset extends Component {
       this.changeFundingPercentages = this.changeFundingPercentages.bind(this);
       this.notZero = this.notZero.bind(this);
       this.getEventInfo = this.getEventInfo.bind(this);
+      this.setEventListeners = this.setEventListeners.bind(this);
     }
 
     async componentDidMount() {
@@ -42,8 +39,9 @@ class Asset extends Component {
       const LogAssetRemoved = instance.LogAssetRemoved({},{fromBlock: 0, toBlock: 'latest'});
       const LogFundingTimeChanged = instance.LogAssetRemoved({},{fromBlock: 0, toBlock: 'latest'});
       web3.eth.defaultAccount = web3.eth.coinbase;
-      this.setState({ web3: web3, database: database, instance: instance, LogAssetFundingStarted: LogAssetFundingStarted,
-       LogAssetInfo: LogAssetInfo, LogAssetRemoved: LogAssetRemoved, LogFundingTimeChanged: LogFundingTimeChanged})
+      this.setState({ web3: web3, database: database, instance: instance, database: database, LogAssetFundingStarted: LogAssetFundingStarted,
+       LogAssetInfo: LogAssetInfo, LogAssetRemoved: LogAssetRemoved, LogFundingTimeChanged: LogFundingTimeChanged});
+      this.setEventListeners();
     }
 
     async callInterface(interfaceName) {
@@ -52,24 +50,31 @@ class Asset extends Component {
       alert(`The result from calling ${interfaceName} is ${response}`);
     }
 
+    async setEventListeners(){
+      const { instance, web3, LogAssetFundingStarted,
+      LogAssetInfo, LogAssetRemoved, LogFundingTimeChanged } = this.state;
+      LogAssetFundingStarted.watch(function(e,r){if(!e){alert('LogAssetFundingStarted; ' + r);}});
+      LogAssetInfo.watch(function(e,r){if(!e){alert('LogAssetInfo; ' + r);}});
+      LogAssetRemoved.watch(function(e,r){if(!e){alert('LogAssetRemoved; ' + r);}});
+      LogFundingTimeChanged.watch(function(e,r){if(!e){alert('LogFundingTimeChanged; ' + r);}});
+    }
+
     async newAsset(_storageHash, _amountToBeRaised, _managerPercentage, _installerID, _assetType){
       const { instance, web3} = this.state;
-      debugger;
       instance.newAsset.estimateGas(
-        _storageHash, _amountToBeRaised, _managerPercentage,
-        _installerID, _assetType,
-        {from:web3.eth.coinbase},
-        async function(e,gasEstimate){
-          console.log(e);
-          if(!e){
-              const response = await instance.newAssetAsync(
-                _storageHash, _amountToBeRaised, _managerPercentage,
-                _installerID, _assetType,
-                {from:web3.eth.coinbase, gas:gasEstimate}
-              );
-          };
-        });
-    }
+          _storageHash, _amountToBeRaised, _managerPercentage,
+          _installerID, _assetType,
+          async function(e,gasEstimate){
+
+            if(!e){
+                const response = await instance.newAssetAsync(
+                  _storageHash, _amountToBeRaised, _managerPercentage,
+                  _installerID, _assetType,
+                  {from:web3.eth.coinbase, gas:50000}
+                );
+            };
+          });
+        }
 
     async removeAsset(_assetID, _functionSigner){
       const { instance, web3 } = this.state;
@@ -106,7 +111,6 @@ class Asset extends Component {
       if(this.notZero(_myBitFoundationPercentage) &&
         this.notZero(_stakedTokenPercentage) &&
         this.notZero(_installerPercentage)){
-
         instance.changeFundingTime.estimateGas(
           _myBitFoundationPercentage,_stakedTokenPercentage,
           _installerPercentage, _functionSigner,

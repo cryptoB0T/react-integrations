@@ -28,14 +28,19 @@ class UserAccess extends Component {
       this.setBackupAddress = this.setBackupAddress.bind(this);
       this.switchToBackup = this.switchToBackup.bind(this);
       this.getEventInfo = this.getEventInfo.bind(this);
+      this.setEventListeners = this.setEventListeners.bind(this);
     }
 
     async componentDidMount() {
       const { web3, modifier, database } = this.props;
       const abi = await web3.eth.contract(ABIInterfaceArray)
       const instance = instancePromisifier(abi.at(SMART_CONTRACT_ADDRESS))
-      this.setState({ web3: web3, instance: instance, modifier: modifier,
-        database: database})
+      const LogBackupAddressUsed = instance.LogBackupAddressUsed({},{fromBlock: 0, toBlock: 'latest'});
+      const LogUserApproved = instance.LogUserApproved({},{fromBlock: 0, toBlock: 'latest'});
+      const LogUserRemoved = instance.LogUserRemoved({},{fromBlock: 0, toBlock: 'latest'});
+      this.setState({ web3: web3, instance: instance, modifier: modifier, database: database, LogBackupAddressUsed: LogBackupAddressUsed,
+      LogUserApproved: LogUserApproved, LogUserRemoved })
+      this.setEventListeners();
     }
 
     async callInterface(interfaceName, _param){
@@ -43,6 +48,15 @@ class UserAccess extends Component {
       const response = await instance[`${interfaceName}Async`](_param);
       alert(`The result from calling ${interfaceName} is ${response}`);
     }
+
+    async setEventListeners(){
+      const { instance, web3, LogBackupAddressUsed, LogUserApproved,
+      LogUserRemoved} = this.state;
+      LogBackupAddressUsed.watch(function(e,r){if(!e){alert('LogBackupAddressUsed; ' + r);}});
+      LogUserApproved.watch(function(e,r){if(!e){alert('LogUserApproved; ' + r);}});
+      LogUserRemoved.watch(function(e,r){if(!e){alert('LogUserRemoved; ' + r);}});
+    }
+
 
     async setBackupAddress(_backupAddress){
       const { instance, web3, modifier, database} = this.state;

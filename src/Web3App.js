@@ -15,6 +15,7 @@ import TokenBurnUtil from './util/components/TokenBurnUtil'
 import UserAccessUtil from './util/components/UserAccessUtil'
 import WithdrawalManagerUtil from './util/components/WithdrawalManagerUtil'
 
+import HelloTestnet from './components/HelloTestnet'
 
 import Accounts from './components/Accounts'
 import Asset from './components/Asset'
@@ -95,6 +96,13 @@ class Web3App extends Component {
           <div className="App-wrapper">
 
             <br />
+            <div ref ='testnetDiv' >
+              <HelloTestnet
+                web3={web3}
+                database = {databaseInstance}
+                 />
+            </div>
+
             <div ref ='accountsDiv' >
               <Accounts web3={web3} />
             </div>

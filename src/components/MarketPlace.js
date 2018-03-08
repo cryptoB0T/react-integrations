@@ -37,6 +37,7 @@ class MarketPlace extends Component {
       this.buyOrderExists = this.buyOrderExists.bind(this);
       this.needsToWithdraw = this.needsToWithdraw.bind(this);
       this.getEventInfo = this.getEventInfo.bind(this);
+      this.setEventListeners = this.setEventListeners.bind(this);
     }
 
     async componentDidMount() {
@@ -44,8 +45,28 @@ class MarketPlace extends Component {
       const abi = await web3.eth.contract(ABIInterfaceArray)
       const instance = instancePromisifier(abi.at(SMART_CONTRACT_ADDRESS))
 
-      this.setState({ web3: web3, database: database, modifier: modifier, instance: instance})
+      const LogDestruction = instance.LogDestruction({},{fromBlock: 0, toBlock: 'latest'});
+      const LogSellOrderCreated = instance.LogSellOrderCreated({},{fromBlock: 0, toBlock: 'latest'});
+      const LogBuyOrderCreated = instance.LogBuyOrderCreated({},{fromBlock: 0, toBlock: 'latest'});
+      const LogBuyOrderCompleted = instance.LogBuyOrderCompleted({},{fromBlock: 0, toBlock: 'latest'});
+      const LogSellOrderCompleted = instance.LogSellOrderCompleted({},{fromBlock: 0, toBlock: 'latest'});
+
+      this.setState({ web3: web3, database: database, modifier: modifier, instance: instance, LogDestruction: LogDestruction,
+      LogSellOrderCompleted: LogSellOrderCompleted, LogBuyOrderCreated: LogBuyOrderCreated,
+      LogBuyOrderCompleted: LogBuyOrderCompleted, LogSellOrderCompleted: LogSellOrderCompleted})
+      this.setEventListeners();
     }
+
+    async setEventListeners(){
+      const { instance, web3, LogDestruction, LogSellOrderCreated,
+      LogBuyOrderCreated, LogBuyOrderCompleted, LogSellOrderCompleted} = this.state;
+      LogDestruction.watch(function(e,r){if(!e){alert('LogDestruction; ' + r);}});
+      LogSellOrderCreated.watch(function(e,r){if(!e){alert('LogSellOrderCreated; ' + r);}});
+      LogBuyOrderCreated.watch(function(e,r){if(!e){alert('LogBuyOrderCreated; ' + r);}});
+      LogBuyOrderCompleted.watch(function(e,r){if(!e){alert('LogBuyOrderCompleted; ' + r);}});
+      LogSellOrderCompleted.watch(function(e,r){if(!e){alert('LogSellOrderCompleted; ' + r);}});
+    }
+
 
     async callInterface(interfaceName, _param) {
       const { instance } = this.state;

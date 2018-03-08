@@ -19,17 +19,7 @@ class FundingHub extends Component {
         instance:null,
         web3:null,
         database:null,
-        modifier:null,
-        LogNewFunder:null,
-        LogAssetFunded:null,
-        LogAssetFundingFailed:null,
-        LogAssetPayoutInstaller:null,
-        LogRefund:null,
-        LogFundingTimeChanged:null,
-        LogAssetEscrowChanged:null,
-        LogAssetPayoutMyBitFoundation:null,
-        LogAssetPayoutLockedTokenHolders:null,
-        LogDestruction:null,
+        modifier:null
       }
       this.callConstant = this.callInterface.bind(this);
       this.fund = this.fund.bind(this);
@@ -37,13 +27,49 @@ class FundingHub extends Component {
       this.initiateRefund = this.initiateRefund.bind(this);
       this.refund = this.refund.bind(this);
       this.getEventInfo = this.getEventInfo.bind(this);
+      this.setEventListeners = this.setEventListeners.bind(this);
     }
 
     async componentDidMount() {
       const { web3, database, modifier } = this.props;
       const abi = await web3.eth.contract(ABIInterfaceArray);
       const instance = instancePromisifier(abi.at(SMART_CONTRACT_ADDRESS));
-      this.setState({ web3: web3, database: database, modifier: modifier, instance: instance})
+      const LogNewFunder = instance.LogNewFunder({},{fromBlock: 0, toBlock: 'latest'});
+      const LogAssetFunded = instance.LogAssetFunded({},{fromBlock: 0, toBlock: 'latest'});
+      const LogAssetFundingFailed = instance.LogAssetFundingFailed({},{fromBlock: 0, toBlock: 'latest'});
+      const LogAssetPayoutInstaller = instance.LogAssetPayoutInstaller({}, {fromBlock: 0, toBlock: 'latest'});
+      const LogRefund = instance.LogRefund({}, {fromBlock: 0, toBlock: 'latest'});
+      const LogFundingTimeChanged = instance.LogFundingTimeChanged({}, {fromBlock: 0, toBlock: 'latest'});
+      const LogAssetEscrowChanged = instance.LogAssetEscrowChanged({}, {fromBlock: 0, toBlock: 'latest'});
+      const LogAssetPayoutMyBitFoundation = instance.LogAssetPayoutMyBitFoundation({}, {fromBlock: 0, toBlock: 'latest'});
+      const LogAssetPayoutLockedTokenHolders = instance.LogAssetPayoutLockedTokenHolders({}, {fromBlock: 0, toBlock: 'latest'});
+      const LogDestruction = instance.LogDestruction({}, {fromBlock: 0, toBlock: 'latest'});
+
+      this.setState({ web3: web3, database: database, modifier: modifier, database: database, instance: instance, LogNewFunder: LogNewFunder,
+            LogAssetFunded: LogAssetFunded, LogAssetFundingFailed: LogAssetFundingFailed,
+            LogAssetPayoutInstaller: LogAssetPayoutInstaller, LogRefund: LogRefund,
+            LogFundingTimeChanged: LogFundingTimeChanged, LogAssetEscrowChanged: LogAssetEscrowChanged,
+            LogAssetPayoutMyBitFoundation: LogAssetPayoutMyBitFoundation, LogAssetPayoutLockedTokenHolders:
+            LogAssetPayoutLockedTokenHolders, LogDestruction:LogDestruction });
+      this.setEventListeners();
+      }
+
+
+    async setEventListeners(){
+      const { instance, web3, LogNewFunder, LogAssetFunded,
+      LogAssetFundingFailed, LogAssetPayoutInstaller, LogRefund,
+      LogFundingTimeChanged, LogAssetEscrowChanged, LogAssetPayoutMyBitFoundation,
+      LogAssetPayoutLockedTokenHolders, LogDestruction} = this.state;
+      LogNewFunder.watch(function(e,r){if(!e){alert('LogNewFunder; ' + r);}});
+      LogAssetFunded.watch(function(e,r){if(!e){alert('LogAssetFunded; ' + r);}});
+      LogAssetFundingFailed.watch(function(e,r){if(!e){alert('LogAssetFundingFailed; ' + r);}});
+      LogAssetPayoutInstaller.watch(function(e,r){if(!e){alert('LogAssetPayoutInstaller; ' + r);}});
+      LogRefund.watch(function(e,r){if(!e){alert('LogRefund; ' + r);}});
+      LogFundingTimeChanged.watch(function(e,r){if(!e){alert('LogFundingTimeChanged; ' + r);}});
+      LogAssetEscrowChanged.watch(function(e,r){if(!e){alert('LogAssetEscrowChanged; ' + r);}});
+      LogAssetPayoutMyBitFoundation.watch(function(e,r){if(!e){alert('LogAssetPayoutMyBitFoundation; ' + r);}});
+      LogAssetPayoutLockedTokenHolders.watch(function(e,r){if(!e){alert('LogAssetPayoutLockedTokenHolders; ' + r);}});
+      LogDestruction.watch(function(e,r){if(!e){alert('LogDestruction; ' + r);}});
     }
 
     async callInterface(interfaceName) {
