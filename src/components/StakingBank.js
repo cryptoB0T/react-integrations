@@ -9,7 +9,7 @@ import ABIInterfaceArray from '../util/abis/StakingBank.json'
 
 import '../App.css';
 
-const SMART_CONTRACT_ADDRESS = '0x64b17870283bedce675f69aeba03774458a62adf'
+const SMART_CONTRACT_ADDRESS = '0x97A0a9189e2f8E662Eb2dE8000b3B95b5e8A6f8D'
 const instancePromisifier = (instance) => promisifyAll(instance, { suffix: 'Async'})
 const constantsFromInterface = ABIInterfaceArray.filter( ABIinterface => ABIinterface.constant )
 
@@ -37,10 +37,10 @@ class StakingBank extends Component {
       const { web3, database, modifier } = this.props;
       const abi = await web3.eth.contract(ABIInterfaceArray)
       const instance = instancePromisifier(abi.at(SMART_CONTRACT_ADDRESS))
-      const LogDestruction = instance.LogNewFunder({},{fromBlock: 0, toBlock: 'latest'});
-      const LogFeeReceived = instance.LogAssetFunded({},{fromBlock: 0, toBlock: 'latest'});
-      const LogTokensStaked = instance.LogAssetFundingFailed({},{fromBlock: 0, toBlock: 'latest'});
-      const LogTokenWithdraw = instance.LogAssetPayoutInstaller({}, {fromBlock: 0, toBlock: 'latest'});
+      const LogDestruction = instance.LogDestruction({},{fromBlock: 0, toBlock: 'latest'});
+      const LogFeeReceived = instance.LogFeeReceived({},{fromBlock: 0, toBlock: 'latest'});
+      const LogTokensStaked = instance.LogTokensStaked({},{fromBlock: 0, toBlock: 'latest'});
+      const LogTokenWithdraw = instance.LogTokenWithdraw({}, {fromBlock: 0, toBlock: 'latest'});
       this.setState({ web3: web3, database: database, modifier: modifier, database: database, instance: instance,
          LogDestruction: LogDestruction, LogFeeReceived: LogFeeReceived,
          LogTokensStaked: LogTokensStaked, LogTokenWithdraw: LogTokenWithdraw});
@@ -66,7 +66,7 @@ class StakingBank extends Component {
     // TODO; stake_ID bigchainDB
     async requestWithdrawal(_stakeID){
       const { instance, web3 } = this.state;
-      instance.requestWithdraw.estimateGas(
+      /*instance.requestWithdraw.estimateGas(
           _stakeID,
           {from:web3.eth.coinbase},
           async function(e, gasEstimate){
@@ -75,12 +75,14 @@ class StakingBank extends Component {
                   from: web3.eth.coinbase, gas:gasEstimate});
             }
           }
-        )
+        )*/
+        const response = await instance.requestWithdrawAsync(_stakeID,{
+            from: web3.eth.coinbase, gas:210000});
       }
 
     async withdrawal(_stakeID){
       const { instance, web3 } = this.state;
-      instance.withdraw.estimateGas(
+    /*  instance.withdraw.estimateGas(
           _stakeID,
           {from:web3.eth.coinbase},
           async function(e, gasEstimate){
@@ -89,12 +91,15 @@ class StakingBank extends Component {
                   from: web3.eth.coinbase, gas:gasEstimate})
               }
             }
-          )
+          )*/
+
+        const response = await instance.withdrawAsync(_stakeID,{
+            from: web3.eth.coinbase, gas:210000});
         }
 
     async bugWithdrawal(_amount, _userAddress){
       const { instance, web3 } = this.state;
-      instance.bugWithdraw.estimateGas(
+      /*instance.bugWithdraw.estimateGas(
           _amount, _userAddress,
           {from:web3.eth.coinbase},
           async function(e, gasEstimate){
@@ -103,7 +108,9 @@ class StakingBank extends Component {
                   from: web3.eth.coinbase, gas:gasEstimate});
             }
           }
-        )
+        )*/
+        const response = await instance.bugWithdrawAsync(_amount, _userAddress,{
+            from: web3.eth.coinbase, gas:210000});
       }
 
 

@@ -6,7 +6,7 @@ import ABIInterfaceArray from '../util/abis/ContractManager.json'
 
 import '../App.css';
 
-const SMART_CONTRACT_ADDRESS = '0x983bec6f35d94e19302dd9a8a468185dde085eb7'
+const SMART_CONTRACT_ADDRESS = '0xDB6584b6E2A107b5139955453Ac1AA63E528eeD3'
 const instancePromisifier = (instance) => promisifyAll(instance, { suffix: 'Async'})
 const constantsFromInterface = ABIInterfaceArray.filter( ABIinterface => ABIinterface.constant )
 const methodsFromInterface = ABIInterfaceArray.filter( ABIinterface => !ABIinterface.constant )
@@ -37,7 +37,8 @@ class ContractManager extends Component {
 
     async setContractManagerAddress(_contractManager){
       const { instance, web3 } = this.state;
-      instance.voteForBug.setContractManager(
+
+      /*instance.voteForBug.gasEstimate(
         _contractManager,
         {from:web3.eth.coinbase},
         async function(e, gasEstimate){
@@ -46,7 +47,9 @@ class ContractManager extends Component {
               from: web3.eth.coinbase, gas:gasEstimate});
           }
         }
-      )
+      )*/
+      const response = await instance.setContractManagerAsync(_contractManager,{
+        from: web3.eth.coinbase, gas:210000});
     }
 
 

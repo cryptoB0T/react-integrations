@@ -12,6 +12,7 @@ export const getWeb3Async = (reload) => new Promise((resolve, reject) => {
     // No web3 instance injected, using Local web3.
     const provider = new Web3.providers.HttpProvider('http://localhost:8545')
     web3 = new Web3(provider)
+    console.log('localhost');
   }
 
   // wrap callback functions with promises

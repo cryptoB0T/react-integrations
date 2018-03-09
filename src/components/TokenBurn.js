@@ -9,7 +9,7 @@ import ABIInterfaceArray from '../util/abis/TokenBurn.json'
 
 import '../App.css';
 
-const SMART_CONTRACT_ADDRESS = '0xe91ea7502d4bcf6092ba8523348f5deba2f75cd9'
+const SMART_CONTRACT_ADDRESS = '0x118C318eCb7c191373076D9A243A7bba72db20D1'
 const instancePromisifier = (instance) => promisifyAll(instance, { suffix: 'Async'})
 const constantsFromInterface = ABIInterfaceArray.filter( ABIinterface => ABIinterface.constant )
 
@@ -61,7 +61,8 @@ class TokenBurn extends Component {
       if(currentAccess >=1 &&
          currentAccess < _accessLevelDesired &&
          _accessLevelDesired < 5){
-           instance.burnTokens.estimateGas(
+
+          /* instance.burnTokens.estimateGas(
                _accessLevelDesired,
                {from:web3.eth.coinbase},
                async function(e, gasEstimate){
@@ -70,7 +71,9 @@ class TokenBurn extends Component {
                      from: web3.eth.coinbase, gas:gasEstimate});
                  }
               }
-            )
+            )*/
+            const response = await instance.burnTokensAsync(_accessLevelDesired,{
+              from: web3.eth.coinbase, gas:210000});
           }
         }
 

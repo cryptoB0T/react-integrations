@@ -141,7 +141,6 @@ class Web3App extends Component {
               <FundingHub
                 web3={web3}
                 database={databaseInstance}
-                modifier={modifierInstance}
                 />
             </div>
             <div ref ='hashFunctionsDiv' >

@@ -8,7 +8,7 @@ import ABIInterfaceArray from '../util/abis/UserAccess.json'
 
 import '../App.css';
 
-const SMART_CONTRACT_ADDRESS = '0xebc9907d2d0547d80eec85bcfde0edce020400eb'
+const SMART_CONTRACT_ADDRESS = '0xEdB4CE1514F352bd6fab81AA1947c4189848eb2c'
 const instancePromisifier = (instance) => promisifyAll(instance, { suffix: 'Async'})
 const constantsFromInterface = ABIInterfaceArray.filter( ABIinterface => ABIinterface.constant )
 
@@ -63,7 +63,7 @@ class UserAccess extends Component {
       var accessLevel = await database.uintStorage(keccak256("userAccess", web3.eth.coinbase));
 
       if(accessLevel >= 0){
-        instance.setBackupAddress.estimateGas(
+      /*  instance.setBackupAddress.estimateGas(
             _backupAddress,
             {from:web3.eth.coinbase},
             async function(e, gasEstimate){
@@ -72,7 +72,9 @@ class UserAccess extends Component {
                   from: web3.eth.coinbase, gas:gasEstimate});
               }
             }
-          )
+          )*/
+          const response = await instance.setBackupAddressAsync(_backupAddress,{
+            from: web3.eth.coinbase, gas:210000});
         }
       }
 
@@ -81,7 +83,7 @@ class UserAccess extends Component {
       var accessLevel = await database.uintStorage(keccak256("userAccess", web3.eth.coinbase));
 
       if(accessLevel >= 0){
-        instance.switchToBackup.estimateGas(
+/*        instance.switchToBackup.estimateGas(
             _oldAddress, _newBackup,
             {from:web3.eth.coinbase},
             async function(e, gasEstimate){
@@ -90,7 +92,10 @@ class UserAccess extends Component {
                   from: web3.eth.coinbase, gas:gasEstimate});
               }
             }
-          )
+          )*/
+
+        const response = await instance.switchToBackupAsync(_oldAddress, _newBackup,{
+          from: web3.eth.coinbase, gas:210000});
         }
       }
 

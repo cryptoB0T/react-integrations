@@ -8,7 +8,7 @@ import ABIInterfaceArray from '../util/abis/FundingHub.json'
 
 import '../App.css';
 
-const SMART_CONTRACT_ADDRESS = '0x729f330a684a10fcb5aac45be1f81e2ec1f4ebb9'
+const SMART_CONTRACT_ADDRESS = '0x6E9e0AcB899de022a121488FaAa1c735931f4892'
 const instancePromisifier = (instance) => promisifyAll(instance, { suffix: 'Async'})
 const constantsFromInterface = ABIInterfaceArray.filter( ABIinterface => ABIinterface.constant )
 
@@ -31,44 +31,36 @@ class FundingHub extends Component {
     }
 
     async componentDidMount() {
-      const { web3, database, modifier } = this.props;
+      const { web3, database } = this.props;
       const abi = await web3.eth.contract(ABIInterfaceArray);
+
       const instance = instancePromisifier(abi.at(SMART_CONTRACT_ADDRESS));
       const LogNewFunder = instance.LogNewFunder({},{fromBlock: 0, toBlock: 'latest'});
       const LogAssetFunded = instance.LogAssetFunded({},{fromBlock: 0, toBlock: 'latest'});
       const LogAssetFundingFailed = instance.LogAssetFundingFailed({},{fromBlock: 0, toBlock: 'latest'});
-      const LogAssetPayoutInstaller = instance.LogAssetPayoutInstaller({}, {fromBlock: 0, toBlock: 'latest'});
       const LogRefund = instance.LogRefund({}, {fromBlock: 0, toBlock: 'latest'});
-      const LogFundingTimeChanged = instance.LogFundingTimeChanged({}, {fromBlock: 0, toBlock: 'latest'});
+      const LogAssetPayout = instance.LogAssetPayout({}, {fromBlock: 0, toBlock: 'latest'});
       const LogAssetEscrowChanged = instance.LogAssetEscrowChanged({}, {fromBlock: 0, toBlock: 'latest'});
-      const LogAssetPayoutMyBitFoundation = instance.LogAssetPayoutMyBitFoundation({}, {fromBlock: 0, toBlock: 'latest'});
-      const LogAssetPayoutLockedTokenHolders = instance.LogAssetPayoutLockedTokenHolders({}, {fromBlock: 0, toBlock: 'latest'});
       const LogDestruction = instance.LogDestruction({}, {fromBlock: 0, toBlock: 'latest'});
 
-      this.setState({ web3: web3, database: database, modifier: modifier, database: database, instance: instance, LogNewFunder: LogNewFunder,
+      this.setState({ web3: web3, database: database, database: database, instance: instance, LogNewFunder: LogNewFunder,
             LogAssetFunded: LogAssetFunded, LogAssetFundingFailed: LogAssetFundingFailed,
-            LogAssetPayoutInstaller: LogAssetPayoutInstaller, LogRefund: LogRefund,
-            LogFundingTimeChanged: LogFundingTimeChanged, LogAssetEscrowChanged: LogAssetEscrowChanged,
-            LogAssetPayoutMyBitFoundation: LogAssetPayoutMyBitFoundation, LogAssetPayoutLockedTokenHolders:
-            LogAssetPayoutLockedTokenHolders, LogDestruction:LogDestruction });
+            LogRefund: LogRefund, LogAssetPayout: LogAssetPayout,
+            LogAssetEscrowChanged: LogAssetEscrowChanged, LogDestruction: LogDestruction});
       this.setEventListeners();
       }
 
 
     async setEventListeners(){
       const { instance, web3, LogNewFunder, LogAssetFunded,
-      LogAssetFundingFailed, LogAssetPayoutInstaller, LogRefund,
-      LogFundingTimeChanged, LogAssetEscrowChanged, LogAssetPayoutMyBitFoundation,
-      LogAssetPayoutLockedTokenHolders, LogDestruction} = this.state;
+      LogAssetFundingFailed, LogRefund,
+      LogAssetPayout, LogAssetEscrowChanged, LogDestruction} = this.state;
       LogNewFunder.watch(function(e,r){if(!e){alert('LogNewFunder; ' + r);}});
       LogAssetFunded.watch(function(e,r){if(!e){alert('LogAssetFunded; ' + r);}});
       LogAssetFundingFailed.watch(function(e,r){if(!e){alert('LogAssetFundingFailed; ' + r);}});
-      LogAssetPayoutInstaller.watch(function(e,r){if(!e){alert('LogAssetPayoutInstaller; ' + r);}});
       LogRefund.watch(function(e,r){if(!e){alert('LogRefund; ' + r);}});
-      LogFundingTimeChanged.watch(function(e,r){if(!e){alert('LogFundingTimeChanged; ' + r);}});
+      LogAssetPayout.watch(function(e,r){if(!e){alert('LogAssetEscrowChanged; ' + r);}});
       LogAssetEscrowChanged.watch(function(e,r){if(!e){alert('LogAssetEscrowChanged; ' + r);}});
-      LogAssetPayoutMyBitFoundation.watch(function(e,r){if(!e){alert('LogAssetPayoutMyBitFoundation; ' + r);}});
-      LogAssetPayoutLockedTokenHolders.watch(function(e,r){if(!e){alert('LogAssetPayoutLockedTokenHolders; ' + r);}});
       LogDestruction.watch(function(e,r){if(!e){alert('LogDestruction; ' + r);}});
     }
 
@@ -79,14 +71,21 @@ class FundingHub extends Component {
     }
 
     async fund(_assetID, _value){
-      const { instance, web3, modifier } = this.state;
-      if(modifier.fundingLimitValue(_assetID) &&
-         modifier.fundingLimitTime(_assetID) &&
-         modifier.onlyApproved(2) &&
-         modifier.atStage(_assetID, 1) &&
-         modifier.notZero(_value)
+      const { instance, web3, database } = this.state;
+       var amountRaised = await database.uintStorage(keccak256("amountRaised", _assetID));
+       var amountToBeRaised = await database.uintStorage(keccak256("amountToBeRaised", _assetID));
+       var currentDate = new Date().getTime();
+       var fundingDeadline = await database.uintStorage(keccak256("fundingDeadline", _assetID));
+       var userAccessLevel = await database.uintStorage(keccak256("userAccess", web3.eth.coinbase));
+       var assetStage = await database.uintStorage(keccak256("fundingStage", _assetID));
+       alert(amountRaised);
+      if(amountRaised < amountToBeRaised &&
+         currentDate < fundingDeadline &&
+         userAccessLevel >= 2 &&
+         assetStage === 1  &&
+         _value > 0
       ){
-        instance.fund.estimateGas(
+        /*instance.fund.estimateGas(
           _assetID,
           {from:web3.eth.coinbase, value:_value},
           async function(e,gasEstimate){
@@ -95,16 +94,23 @@ class FundingHub extends Component {
                   from: web3.eth.coinbase, gas:gasEstimate, value: _value});
                 }
               })
-            }
-          };
+            }*/
+      const response = await instance.fundAsync(_assetID,{
+          from: web3.eth.coinbase, gas:210000, value: web3.toWei(_value, 'ether')});
+          }
+        };
 
 
     async payout(_assetID){
-      const { instance, web3, modifier } = this.state;
-      if(modifier.atStage(_assetID, 3) &&
-         modifier.fundingPeriodOver(_assetID)
+      const { instance, web3, database } = this.state;
+      var assetStage = await database.uintStorage(keccak256("fundingStage", _assetID));
+      var currentDate = new Date().getTime();
+      var fundingDeadline = await database.uintStorage(keccak256("fundingDeadline", _assetID));
+
+      if(assetStage === 3 &&
+         currentDate > fundingDeadline
       ){
-        instance.payout.estimateGas(
+        /*instance.payout.estimateGas(
           _assetID,
           {from:web3.eth.coinbase},
           async function(e,gasEstimate){
@@ -113,18 +119,23 @@ class FundingHub extends Component {
                 from: web3.eth.coinbase, gas:gasEstimate});
               }
           }
-        )
+        )*/
+        const response = await instance.payoutAsync(_assetID,{
+          from: web3.eth.coinbase, gas:210000});
       }
     }
 
     async initiateRefund(_assetID){
-      const { instance, web3, modifier} = this.state;
-      const response = await instance.initiateRefundAsync(_assetID,{
-        from: web3.eth.coinbase, gas:30000});
-      if(modifier.fundingPeriodOver(_assetID) &&
-         modifier.atStage(_assetID, 1)
+      const { instance, web3, database} = this.state;
+      var currentDate = new Date().getTime();
+      var fundingDeadline = await database.uintStorage(keccak256("fundingDeadline", _assetID));
+      var assetStage = await database.uintStorage(keccak256("fundingStage", _assetID));
+
+      if(
+        currentDate > fundingDeadline &&
+         assetStage === 1
       ){
-        instance.initiateRefund.estimateGas(
+        /*instance.initiateRefund.estimateGas(
           _assetID,
           {from:web3.eth.coinbase},
           async function(e,gasEstimate){
@@ -133,15 +144,18 @@ class FundingHub extends Component {
                 from: web3.eth.coinbase, gas:gasEstimate});
               }
           }
-        )
+        )*/
+        const response = await instance.initiateRefundAsync(_assetID,{
+          from: web3.eth.coinbase, gas:210000});
       }
     }
 
     async refund(_assetID){
-      const { instance, web3, modifier } = this.state;
-      if(modifier.atStage(_assetID, 1))
+      const { instance, web3, database } = this.state;
+      var assetStage = await database.uintStorage(keccak256("fundingStage", _assetID));
+      if(assetStage == 1)
         {
-          instance.refund.estimateGas(
+          /*instance.refund.estimateGas(
             _assetID,
             {from:web3.eth.coinbase},
             async function(e,gasEstimate){
@@ -150,7 +164,9 @@ class FundingHub extends Component {
                 from: web3.eth.coinbase, gas:gasEstimate});
               }
             }
-          )
+          )*/
+          const response = await instance.refundAsync(_assetID,{
+          from: web3.eth.coinbase, gas:210000});
         }
       }
 

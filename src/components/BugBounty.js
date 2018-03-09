@@ -58,7 +58,7 @@ class BugBounty extends Component {
       const { instance, web3 } = this.state;
       instance.voteForBug.estimateGas(
         _bugID, _upvote,
-        {from:this.web3.eth.coinbase},
+        {from:web3.eth.coinbase},
         async function(e, gasEstimate){
           if(!e){
             const response = await instance.voteForBugAsync(

@@ -75,8 +75,8 @@ class MarketPlace extends Component {
     }
 
     async buyAsset(_sellOrderID){
-      const { instance, web3, modifier } = this.state;
-      instance.sellOrders.call(_sellOrderID, async function(e,order){
+      const { instance, web3 } = this.state;
+    /*  instance.sellOrders.call(_sellOrderID, async function(e,order){
           var valueCost = Number(order[2]) * Number(order[3]); //TODO; wei return need to test
           if(this.needsToWithdraw(
             order[0], order[1]) &&
@@ -96,14 +96,28 @@ class MarketPlace extends Component {
                   }
             })
           }
-      })
+      })*/
+      /*const response = await instance.buyAssetAsync(
+      _sellOrderID,
+      {from:web3.eth.coinbase,
+      gas:gasEstimate,
+      value: valueCost}*/
+
+      instance.sellOrders.call(_sellOrderID, async function(e,order){
+          var valueCost = Number(order[2]) * Number(order[3])
+          const response = await instance.buyAssetAsync(
+          _sellOrderID,
+          {from:web3.eth.coinbase,
+          gas:210000,
+          value: valueCost});
+        });
     }
 
 
     // TODO; grab assetID
     async sellAsset(_buyOrderID){
       const { instance, web3, modifier } = this.state;
-      this.buyOrderExists.call(_buyOrderID, async function(e,order){
+    /*  this.buyOrderExists.call(_buyOrderID, async function(e,order){
         var valueCost = Number(order[2]) * Number(order[3]);
         instance.sellAsset.estimateGas(
             _buyOrderID,
@@ -120,7 +134,16 @@ class MarketPlace extends Component {
               }
             )
           }
-        );
+        );*/
+        this.buyOrderExists.call(_buyOrderID, async function(e,order){
+            var valueCost = Number(order[2]) * Number(order[3]);
+            const reponse = await instance.sellAssetAsync(
+              _buyOrderID,
+              {from:web3.eth.coinbase,
+              gas:210000,
+              value:valueCost});
+            });
+
       }
 
 

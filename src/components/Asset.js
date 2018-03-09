@@ -8,7 +8,7 @@ import ABIInterfaceArray from '../util/abis/Asset.json'
 
 import '../App.css';
 
-const SMART_CONTRACT_ADDRESS = '0xff69c0648eeba3401026c9927e84f5550db85889'
+const SMART_CONTRACT_ADDRESS = '0x0663EfC10F32eAB78D35432D86Dceb33B94FaC11'
 const instancePromisifier = (instance) => promisifyAll(instance, { suffix: 'Async'})
 const constantsFromInterface = ABIInterfaceArray.filter( ABIinterface => ABIinterface.constant )
 const methodsFromInterface = ABIInterfaceArray.filter( ABIinterface => !ABIinterface.constant )
@@ -69,39 +69,42 @@ class Asset extends Component {
     async withdrawal(_assetID, _otherWithdrawal){
       const { instance, web3, database } = this.state;
       const addrSet = await database.addressStorage(keccak256("withdrawalAddress", web3.eth.coinbase));
+      console.log('asset withdrawal; ' + web3.eth.coinbase);
       if(addrSet !== 'ff' &&
          addrSet !== 'dd'
        ){
-         alert(addrSet);
-         instance.withdraw.estimateGas(
+
+      /*   instance.withdraw.estimateGas(
            _assetID, _otherWithdrawal,
            {from:web3.eth.coinbase},
            async function(e, gasEstimate){
              console.log(e);
-             if(!e){
-               const response = await instance.withdrawAsync(
-                 _assetID, _otherWithdrawal,
-                 {from:web3.eth.coinbase, gas:gasEstimate});
-             }
-         });
-       }
+             console.log(gasEstimate);
+           }
+         );*/
+
+        const response = await instance.withdrawAsync(
+         _assetID, _otherWithdrawal,
+         {from:web3.eth.coinbase, gas:210000});
+      }
      }
 
 
     // Used By ; Asset generating revenue
     async receiveIncome(_assetID, _note){
       const { instance, web3 } = this.state;
-      instance.receiveIncome.estimateGas(
+    /*  instance.receiveIncome.estimateGas(
         _assetID, _note,
         {from:web3.eth.coinbase},
         async function(e, gasEstimate){
         if(!e){
-          console.log(gasEstimate);
+          console.log(gasEstimate);*/
+
           const response = await instance.receiveIncomeAsync(
             _assetID, _note,
-            {from: web3.eth.coinbase, gas: gasEstimate});
-        }
-      });
+            {from: web3.eth.coinbase, gas: 210000});
+        //}
+      //});
       }
 
     async getEventInfo(_object){

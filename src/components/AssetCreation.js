@@ -7,7 +7,7 @@ import ABIInterfaceArray from '../util/abis/AssetCreation.json'
 
 import '../App.css';
 
-const SMART_CONTRACT_ADDRESS = '0x4e5e6b73ffcb08022861dc62f96ba966e72080d7'
+const SMART_CONTRACT_ADDRESS = '0x7cb8af73BF1eCCDb3df8EB4d8507C566381cfdEE'
 const instancePromisifier = (instance) => promisifyAll(instance, { suffix: 'Async'})
 const constantsFromInterface = ABIInterfaceArray.filter( ABIinterface => ABIinterface.constant )
 
@@ -53,32 +53,38 @@ class Asset extends Component {
     async setEventListeners(){
       const { instance, web3, LogAssetFundingStarted,
       LogAssetInfo, LogAssetRemoved, LogFundingTimeChanged } = this.state;
-      LogAssetFundingStarted.watch(function(e,r){if(!e){alert('LogAssetFundingStarted; ' + r);}});
-      LogAssetInfo.watch(function(e,r){if(!e){alert('LogAssetInfo; ' + r);}});
-      LogAssetRemoved.watch(function(e,r){if(!e){alert('LogAssetRemoved; ' + r);}});
-      LogFundingTimeChanged.watch(function(e,r){if(!e){alert('LogFundingTimeChanged; ' + r);}});
+      LogAssetFundingStarted.watch(function(e,r){if(!e){console.log('LogAssetFundingStarted; ' + r);}});
+      LogAssetInfo.watch(function(e,r){if(!e){console.log('LogAssetInfo; ' + r);}});
+      LogAssetRemoved.watch(function(e,r){if(!e){console.log('LogAssetRemoved; ' + r);}});
+      LogFundingTimeChanged.watch(function(e,r){if(!e){console.log('LogFundingTimeChanged; ' + r);}});
     }
 
     async newAsset(_storageHash, _amountToBeRaised, _managerPercentage, _installerID, _assetType){
-      const { instance, web3} = this.state;
-      instance.newAsset.estimateGas(
+      const { instance, web3 } = this.state;
+      /*instance.newAsset.estimateGas(
           _storageHash, _amountToBeRaised, _managerPercentage,
           _installerID, _assetType,
           async function(e,gasEstimate){
-
+            console.log(e);
             if(!e){
                 const response = await instance.newAssetAsync(
                   _storageHash, _amountToBeRaised, _managerPercentage,
                   _installerID, _assetType,
-                  {from:web3.eth.coinbase, gas:50000}
+                  {from:web3.eth.coinbase, gas:gasEstimate}
                 );
             };
-          });
-        }
+          });*/
+          const response = await instance.newAssetAsync(
+            _storageHash, _amountToBeRaised, _managerPercentage,
+            _installerID, _assetType,
+            {from:web3.eth.coinbase, gas:210000});
+
+
+      }
 
     async removeAsset(_assetID, _functionSigner){
       const { instance, web3 } = this.state;
-      instance.removeAsset.estimateGas(
+      /*instance.removeAsset.estimateGas(
         _assetID, _functionSigner,
         {from:web3.eth.coinbase},
         async function(e,gasEstimate){
@@ -87,13 +93,16 @@ class Asset extends Component {
               _assetID, _functionSigner,
               {from: web3.eth.coinbase, gas:gasEstimate});
             };
-          });
+          });*/
+          const response = await instance.removeAssetAsync(
+            _assetID, _functionSigner,
+            {from: web3.eth.coinbase, gas:210000});
     }
 
     async changeFundingTime(_newTimeGivenForFunding){
       const { instance, web3 } = this.state;
       if(this.notZero(_newTimeGivenForFunding)){
-        instance.changeFundingTime.estimateGas(
+      /*  instance.changeFundingTime.estimateGas(
           _newTimeGivenForFunding,
           {from:web3.eth.coinbase},
           async function(e,gasEstimate){
@@ -101,7 +110,11 @@ class Asset extends Component {
             _newTimeGivenForFunding,
             {from: web3.eth.coinbase, gas:gasEstimate}
         );
-      });
+      });*/
+      const response = await instance.changeFundingTimeAsync(
+        _newTimeGivenForFunding,
+        {from: web3.eth.coinbase, gas:210000});
+
     }
   }
 
@@ -111,7 +124,7 @@ class Asset extends Component {
       if(this.notZero(_myBitFoundationPercentage) &&
         this.notZero(_stakedTokenPercentage) &&
         this.notZero(_installerPercentage)){
-        instance.changeFundingTime.estimateGas(
+      /*  instance.changeFundingTime.estimateGas(
           _myBitFoundationPercentage,_stakedTokenPercentage,
           _installerPercentage, _functionSigner,
           {from:web3.eth.coinbase},
@@ -121,7 +134,11 @@ class Asset extends Component {
               _installerPercentage, _functionSigner,
               {from: web3.eth.coinbase, gas:gasEstimate}
             );
-          });
+          });*/
+          const response = await instance.changeFundingPercentagesAsync(
+          _myBitFoundationPercentage,_stakedTokenPercentage,
+          _installerPercentage, _functionSigner,
+          {from: web3.eth.coinbase, gas:210000});
       }
     }
 
