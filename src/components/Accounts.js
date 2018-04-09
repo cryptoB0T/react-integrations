@@ -20,7 +20,7 @@ class Accounts extends Component {
       setTimeout(async () => {
         console.log('Loading accounts...')
         const accounts = await web3.eth.getAccountsAsync()
-        console.log('Accounts loaded.')
+        console.log('Accounts loaded.', accounts)
         this.setState({ loadingAccounts: false, accounts: accounts })
       }, ARTIFICIAL_DELAY_IN_MS)
     }

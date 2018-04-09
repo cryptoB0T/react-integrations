@@ -1,6 +1,6 @@
-# Reactjs Integrations Example
+# Reactjs Integrations & Storybook Examples
 
-*Simple example showcasing integrating Reactjs to multiple APIs*
+*Simple example showcasing integrating Reactjs to multiple APIs, as well as showcasing the creation of a story using Storybook.js*
 
 ## Included APIs
 
@@ -77,3 +77,38 @@ The metaprogrammed (dynamic function creation) version would look like this.
     alert(`The result from calling ${interfaceName} is ${response}`);
   }
 ```
+
+## Used Libraries
+
+- Storybook.js
+
+## Storybook.js
+
+### Overview
+
+Storybook is a development environment for UI components. It allows you to browse a component library, view the different states of each component, and interactively develop and test components.
+
+### Storybook example
+
+This storybook includes a story for:
+
+- `.components/Accounts` - test react component
+
+### Build Instructions
+
+First install:
+
+```sh
+cd react-integrations
+npm install
+```
+
+Once it's installed, you can `npm run storybook` and it will run the development server on your local machine, and give you a URL to browse the Accounts example story.
+
+#### Exporting the Storybook
+
+```sh
+npm run build-storybook
+```
+
+This will generate the required files so that the storybook can be deployed as a static application. It exports the files to a directory named ".out".
