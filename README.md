@@ -112,3 +112,7 @@ npm run build-storybook
 ```
 
 This will generate the required files so that the storybook can be deployed as a static application. It exports the files to a directory named ".out".
+
+## Metamask Accounts
+
+Jose - 0x6442c72aBD1a9d14c303277a8C994Fae295b6BCB
