@@ -116,3 +116,4 @@ This will generate the required files so that the storybook can be deployed as a
 ## Metamask Accounts
 
 Jose - 0x6442c72aBD1a9d14c303277a8C994Fae295b6BCB
+Mark - 0xdA52ef28f5ff83f45439Aca6bf664F4edc581bAF
