@@ -1,0 +1,11 @@
+@import 'carbon-components/scss/components/button/_button.scss';
+
+.#{$prefix}--btn--primary {
+  @include button-theme(
+    red,
+    black,
+    white,
+    pink,
+    black
+  );
+}
