@@ -9,24 +9,14 @@ jobs:
     steps:
       - checkout
 
-      - restore_cache:
-          keys:
-          - v1-dependencies-{{ checksum "package.json" }}
-          - v1-dependencies-
-
       - run: yarn install
-
-      - save_cache:
-          paths:
-            - node_modules
-          key: v1-dependencies-{{ checksum "package.json" }}
 
       - run: yarn test
 
       - run: yarn build
 
       - deploy:
-          name: Deploy Develop to Surge
+          name: Deploy to Surge
           command: |
             if [ "${CIRCLE_BRANCH}" == "develop" ]; then
               yarn run deploy:dev
