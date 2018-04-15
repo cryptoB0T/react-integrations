@@ -9,9 +9,9 @@ const URLS  = {
   userDetails: 'https://api-sandbox.uphold.com/v0/me'
 };
 
-const POST_HEADER = {
-    'Content-Type': 'application/x-www-form-urlencoded'
-};
+// const POST_HEADER = {
+//     'Content-Type': 'application/x-www-form-urlencoded'
+// };
 
 const AUTH_HEADER = {
     'Authorization' : `Bearer ${process.env.REACT_APP_UPHOLD_BEARER_CODE}`
@@ -23,8 +23,8 @@ export const upholdApi = {
             method: 'get',
             url: URLS.userDetails,
             headers: AUTH_HEADER
-        })
+        });
         console.log('User Details', userDetails);
         return userDetails;
     }
-}
+};

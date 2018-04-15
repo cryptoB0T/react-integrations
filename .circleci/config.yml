@@ -23,9 +23,11 @@ jobs:
 
       - run: yarn test
 
-deployment:
-  development:
-    branch: develop
-    commands:
-      - yarn build
-      - surge --project .build/ --domain mybit-dev.surge.sh
+      - run: yarn build
+
+      - deploy:
+          name: Deploy Develop to Surge
+          command: |
+            if [ "${CIRCLE_BRANCH}" == "develop" ]; then
+              surge --project .build/ --domain mybit-dev.surge.sh
+            fi

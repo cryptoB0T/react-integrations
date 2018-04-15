@@ -12,12 +12,12 @@ const App = () => (
     <div>
       <ul>
         <li>
-          <Button onClick={() => console.log('Clicked primary')}>
+          <Button onClick={() => console.log('Clicked primary button')}>
             <Link to="/">Web3App</Link>
           </Button>
         </li>
         <li>
-          <Button kind="secondary" onClick={() => console.log('Clicked secondary')}>
+          <Button kind="secondary" onClick={() => console.log('Clicked secondary button')}>
             <Link to="/uphold">Uphold</Link>
           </Button>
         </li>
