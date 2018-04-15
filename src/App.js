@@ -2,7 +2,7 @@ import React from "react";
 import { BrowserRouter as Router, Route, Link } from "react-router-dom";
 
 import { Button } from 'carbon-components-react';
-import './Button.css';
+import './Button.scss';
 
 import Web3App from './Web3App'
 import UpholdApp from './UpholdApp'
