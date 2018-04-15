@@ -28,7 +28,8 @@
     "storybook": "start-storybook -p 9009 -s public",
     "build-storybook": "build-storybook -c .storybook -o .out",
     "deploy:dev": "surge build/ --domain mybit-dev.surge.sh",
-    "deploy:prod": "surge build/ --domain react-integrations.surge.sh"
+    "deploy:prod": "surge build/ --domain react-integrations.surge.sh",
+    "deploy": "surge build/"
   },
   "devDependencies": {
     "@storybook/addon-actions": "^3.4.0",
