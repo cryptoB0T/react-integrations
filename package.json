@@ -5,6 +5,12 @@
   "dependencies": {
     "axios": "^0.18.0",
     "bluebird": "^3.5.1",
+    "carbon-components": "^8.18.5",
+    "carbon-components-react": "^5.41.6",
+    "carbon-icons": "^6.3.2",
+    "cross-env": "^5.1.4",
+    "node-sass-chokidar": "^1.2.2",
+    "npm-run-all": "^4.1.2",
     "react": "^16.2.0",
     "react-dom": "^16.2.0",
     "react-router-dom": "^4.2.2",
@@ -12,19 +18,25 @@
     "web3": "^0.18.2"
   },
   "scripts": {
-    "start": "react-scripts start",
+    "start-js": "react-scripts start",
+    "start": "cross-env NODE_ENV=development npm-run-all -p watch-css start-js",
     "build": "react-scripts build",
     "test": "react-scripts test --env=jsdom",
     "eject": "react-scripts eject",
+    "build-css": "node-sass-chokidar --include-path ./src --include-path ./node_modules src/ -o src/",
+    "watch-css": "npm run build-css && node-sass-chokidar --include-path ./src --include-path ./node_modules src/ -o src/ --watch --recursive",
     "storybook": "start-storybook -p 9009 -s public",
-    "build-storybook": "build-storybook -c .storybook -o .out"
+    "build-storybook": "build-storybook -c .storybook -o .out",
+    "deploy:dev": "surge build/ --domain mybit-dev.surge.sh",
+    "deploy:prod": "surge build/ --domain react-integrations.surge.sh"
   },
   "devDependencies": {
-    "@storybook/react": "^3.4.0",
     "@storybook/addon-actions": "^3.4.0",
     "@storybook/addon-links": "^3.4.0",
     "@storybook/addons": "^3.4.0",
+    "@storybook/react": "^3.4.0",
     "babel-core": "^6.26.0",
-    "babel-runtime": "^6.26.0"
+    "babel-runtime": "^6.26.0",
+    "surge": "^0.20.1"
   }
 }
