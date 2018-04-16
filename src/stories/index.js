@@ -23,7 +23,7 @@ class LoadWeb3Wrapper extends React.Component {
 
 	render() {
 		return(
-			<div>{this.state.web3 && <Accounts web3={this.state.web3}/>}</div>
+			<div>{this.state.web3 && <Accounts onClick={action('Clicked button to retrieve balance')} web3={this.state.web3}/>}</div>
 		);
 	}
 }

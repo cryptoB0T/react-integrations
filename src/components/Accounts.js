@@ -34,6 +34,13 @@ class Accounts extends Component {
         this.setState({ loadingBalance: false, accountsMap: Object.assign(accountsMap, { [account]: balance } ) })
       }, ARTIFICIAL_DELAY_IN_MS)
     }
+    onClick(account){
+      //Support for storybook
+      if(this.props.onClick){
+        this.props.onClick();
+      }
+      this.loadBalance(account);
+    }
     render() {
         return (
         <div>
@@ -54,7 +61,7 @@ class Accounts extends Component {
                       this.state.accountsMap[account] ?
                       ` ${this.state.accountsMap[account]} ETH ` : ' N/A ETH '
                     }
-                    <button onClick={() => this.loadBalance(account)}>Get Balance</button>
+                    <button onClick={this.onClick.bind(this, account)}>Get Balance</button>
                   </pre>
                   )
                 )
