@@ -22,4 +22,7 @@ jobs:
               yarn run deploy:dev
             elif [ "${CIRCLE_BRANCH}" == "master" ]; then
               yarn run deploy:prod
+            else
+              SANITIZED_BRANCH=$(tr "/" "-" <<<$CIRCLE_BRANCH)
+              yarn run deploy --domain pr-${SANITIZED_BRANCH}-mybit-dev.surge.sh
             fi
