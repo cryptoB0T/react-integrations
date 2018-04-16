@@ -1,4 +1,5 @@
 # Reactjs Integrations & Storybook Examples
+[![CircleCI](https://circleci.com/gh/MyBitFoundation/react-integrations/tree/develop.svg?style=svg)](https://circleci.com/gh/MyBitFoundation/react-integrations/tree/develop)
 
 *Simple example showcasing integrating Reactjs to multiple APIs, as well as showcasing the creation of a story using Storybook.js*
 
